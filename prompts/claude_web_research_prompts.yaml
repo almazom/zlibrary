@@ -1,0 +1,202 @@
+# Claude SDK Web Research Prompts with Force Keywords
+# These prompts contain specific keywords that trigger Claude's web search capabilities
+
+predictive_intent_research:
+  force_keywords:
+    - "search the web"
+    - "look up online" 
+    - "fetch from internet"
+    - "web search"
+    - "find current information"
+    - "research online"
+  
+  main_prompt: |
+    WEB SEARCH REQUIRED: Search the web and fetch current information about "{author_query}"
+    
+    Look up online and find:
+    1. Most popular books by this author
+    2. Bestseller lists and reader ratings
+    3. Current book recommendations
+    4. What users typically search for
+    
+    Web research tasks:
+    - Search for "{author_query}" bibliography
+    - Look up bestseller rankings
+    - Find reader review sites (Goodreads, Amazon)
+    - Check literary awards and recognition
+    
+    Return web-researched analysis:
+    {{
+      "most_popular_book": "from web search results",
+      "satisfaction_prediction": 0.8-1.0,
+      "web_sources_found": ["source1", "source2"],
+      "user_intent_confidence": 0.8-1.0
+    }}
+    
+    IMPORTANT: Use actual web search - don't use internal knowledge only.
+
+author_popularity_research:
+  force_keywords:
+    - "search online"
+    - "web lookup" 
+    - "internet research"
+    - "fetch web data"
+    
+  main_prompt: |
+    Search online for author "{author_name}" popularity and book rankings.
+    
+    Web search for:
+    - Their #1 most famous book
+    - Books with highest ratings (4.0+ stars)  
+    - Most downloaded/purchased titles
+    - Critical acclaim and awards
+    
+    Internet research required to get current, accurate data.
+
+book_intent_validation:
+  force_keywords:
+    - "research web"
+    - "look up online"
+    - "verify online"
+    
+  main_prompt: |
+    Look up online: Does book "{book_title}" by {author} match user search "{user_query}"?
+    
+    Web research validation:
+    - Check if this is author's popular work
+    - Look up user reviews and satisfaction
+    - Verify genre and content match
+    
+    Return confidence based on web research findings.
+
+russian_author_research:
+  force_keywords:
+    - "search web"
+    - "internet lookup"
+    - "web verify"
+    
+  main_prompt: |
+    Search the web to verify: Is "{author_text}" a Russian author or Russian-translated content?
+    
+    Web research tasks:
+    - Look up author nationality and background
+    - Check for Russian translations availability  
+    - Find publication history in Russian
+    
+    Use web search for accurate, current information.
+
+language_detection_web:
+  force_keywords:
+    - "web search"
+    - "online research"
+    
+  main_prompt: |
+    Research online the language and origin of text: "{text}"
+    
+    Web lookup for:
+    - Language identification
+    - Author background research
+    - Publication origin verification
+
+quick_web_research:
+  force_keywords:
+    - "search web for"
+    - "look up online" 
+    - "fetch from internet"
+  
+  main_prompt: |
+    Search the web for information about "{query}"
+    
+    Quick web research:
+    - Find author's popular books
+    - Look up basic ratings
+    - Get key information
+    
+    Return brief analysis based on web findings.
+
+predictive_satisfaction_research:
+  force_keywords:
+    - "web satisfaction research"
+    - "search online reviews" 
+    - "fetch user ratings"
+  
+  main_prompt: |
+    Search online for user satisfaction data about "{book_query}"
+    
+    Web research for satisfaction prediction:
+    - Look up Goodreads ratings and reviews
+    - Search Amazon user reviews online
+    - Find literary awards and recognition
+    - Research reader recommendations
+    
+    Predict 80%+ user satisfaction based on web research findings.
+
+author_extraction_research:
+  force_keywords:
+    - "search web for author"
+    - "look up online author"
+    - "fetch author information"
+  
+  main_prompt: |
+    Search the web to find the author of book: "{book_query}"
+    
+    Web research for author identification:
+    - Look up the book title online
+    - Search for author information
+    - Find publication details
+    - Research book bibliography
+    
+    Return JSON with author information:
+    {{
+      "author_found": true/false,
+      "author_name": "Author Name",
+      "confidence": 0.0-1.0,
+      "book_title_normalized": "Clean title",
+      "publication_year": "YYYY",
+      "additional_info": "any other relevant details"
+    }}
+    
+    IMPORTANT: Use web search to find accurate author information.
+
+url_book_extraction:
+  force_keywords:
+    - "fetch from url"
+    - "visit webpage"
+    - "extract from url"
+  
+  json_schema:
+    type: "object"
+    properties:
+      title:
+        type: "string"
+        description: "Clean book title"
+      author: 
+        type: "string"
+        description: "Author full name"
+      success:
+        type: "boolean"
+        description: "Extraction successful"
+    required: ["title", "author", "success"]
+  
+  main_prompt: |
+    Visit this URL and extract book information: {book_url}
+    
+    Look for:
+    - Book title (main heading, h1, or prominent text)
+    - Author name (byline, author field, or credits)
+    
+    Return ONLY this exact JSON structure:
+    {{
+      "title": "Book Title Here",
+      "author": "Author Name Here", 
+      "success": true
+    }}
+    
+    If you cannot find clear title and author, return:
+    {{
+      "title": "",
+      "author": "",
+      "success": false
+    }}
+    
+    IMPORTANT: Visit the actual webpage to get real data.
