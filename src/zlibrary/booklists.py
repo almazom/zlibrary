@@ -1,6 +1,6 @@
 from .abs import BooklistPaginator
 from .const import OrderOptions
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 from .exception import ParseError
 
 
@@ -15,7 +15,7 @@ class Booklists:
         self.mirror = mirror
 
     async def search_public(
-        self, q: str = "", count: int = 10, order: OrderOptions | str = ""
+        self, q: str = "", count: int = 10, order: Union[OrderOptions, str] = ""
     ):
         if not self.__r or not self.mirror:
             raise ParseError(
@@ -30,7 +30,7 @@ class Booklists:
         return await paginator.init()
 
     async def search_private(
-        self, q: str = "", count: int = 10, order: OrderOptions | str = ""
+        self, q: str = "", count: int = 10, order: Union[OrderOptions, str] = ""
     ):
         if not self.__r or not self.mirror:
             raise ParseError(
