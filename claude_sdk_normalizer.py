@@ -34,12 +34,14 @@ class ClaudeSDKNormalizer:
         prompt = self._build_normalization_prompt(fuzzy_input, language_hint)
         
         try:
-            # Call Claude CLI using subprocess
+            # Simple Claude SDK -p call - let AI handle complexity
+            simple_prompt = f'Normalize book title: "{fuzzy_input}". Fix spelling, grammar. Return JSON with corrected title.'
+            
             result = subprocess.run([
                 self.claude_command,
-                "-p", prompt,
+                "-p", simple_prompt,
                 "--output-format", "json"
-            ], capture_output=True, text=True, timeout=self.prompts.get('timeout_settings', {}).get('default_timeout', 90))
+            ], capture_output=True, text=True, timeout=30)
             
             if result.returncode != 0:
                 return {
@@ -91,14 +93,20 @@ class ClaudeSDKNormalizer:
         """Build the Claude normalization prompt from YAML configuration"""
         
         try:
-            # Get the main prompt template from YAML
+            # Get the main prompt template from YAML  
             main_template = self.prompts['book_normalization']['main_prompt_template']
+            
+            # Always include Russian translation priority for comprehensive analysis
+            translation_priority = self._build_russian_translation_priority_prompt("detected during normalization")
             
             # Format the template with input parameters
             prompt = main_template.format(
                 fuzzy_input=fuzzy_input,
                 language_hint=language_hint
             )
+            
+            # Add Russian translation priority instructions
+            prompt += "\n\n" + translation_priority
             
             # Add language-specific instructions if needed
             if self._is_cyrillic(fuzzy_input):
@@ -170,6 +178,92 @@ class ClaudeSDKNormalizer:
     def _is_cyrillic(self, text: str) -> bool:
         """Check if text contains Cyrillic characters"""
         return bool(re.search(r'[а-яёА-ЯЁ]', text))
+    
+    def _detect_russian_author(self, text: str) -> str:
+        """Detect Russian author names using full Claude SDK power"""
+        try:
+            # Use full Claude SDK power with JSON output format
+            prompt = f'''Analyze this text for Russian author content: "{text}"
+
+Return JSON analysis:
+{{
+    "russian_author_detected": true/false,
+    "author_name": "detected name or empty string", 
+    "confidence": 0.0-1.0,
+    "reasoning": "brief explanation of detection logic",
+    "transliteration_detected": true/false,
+    "cyrillic_detected": true/false
+}}
+
+Consider all forms: Cyrillic (Достоевский), transliterated (Dostoevsky), international authors in Russian (Ричард Бротиган = Richard Brautigan).'''
+            
+            result = subprocess.run([
+                self.claude_command,
+                "-p", prompt,
+                "--output-format", "json"
+            ], capture_output=True, text=True, timeout=20)
+            
+            if result.returncode == 0:
+                # Parse Claude's JSON response directly  
+                claude_response = json.loads(result.stdout)
+                
+                # Extract the analysis result
+                response_text = claude_response.get('result', '')
+                json_match = re.search(r'```json\s*(\{.*?\})\s*```', response_text, re.DOTALL)
+                if json_match:
+                    json_str = json_match.group(1)
+                else:
+                    json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
+                    if json_match:
+                        json_str = json_match.group(1)
+                    else:
+                        return ""
+                
+                detection_result = json.loads(json_str)
+                
+                if detection_result.get("russian_author_detected", False):
+                    detected_name = detection_result.get("author_name", "")
+                    confidence = detection_result.get("confidence", 0.0)
+                    reasoning = detection_result.get("reasoning", "")
+                    
+                    # Only return if high confidence
+                    if confidence > 0.7 and detected_name:
+                        print(f"🎯 Claude SDK detected Russian author: {detected_name} (confidence: {confidence:.1%})")
+                        print(f"📋 Reasoning: {reasoning}")
+                        return detected_name
+                        
+        except Exception as e:
+            print(f"Claude SDK author detection failed: {e}")
+        
+        return ""
+    
+    def _build_russian_translation_priority_prompt(self, author_name: str) -> str:
+        """Build prompt instructions for prioritizing Russian translations"""
+        return f"""
+IMPORTANT RUSSIAN AUTHOR DETECTED: {author_name}
+
+Since this appears to be a Russian author name, PRIORITIZE RUSSIAN TRANSLATIONS:
+
+1. **Primary Focus**: Look for Russian translations of this author's works
+2. **Search Variants**: Generate search queries that prioritize translated versions
+3. **Language Routing**: 
+   - Russian translation versions should be ranked higher
+   - Include terms like "перевод", "русский перевод", "на русском языке"
+   - Look for publishing houses that specialize in translations (АСТ, Эксмо, РИПОЛ, etc.)
+
+4. **Bilingual Output Structure**:
+   - original_language_version: The original work details
+   - russian_language_version: The Russian translation details (prioritized)
+   - translation_available: true if Russian translation exists
+
+5. **Search Query Enhancement**: Create multiple search variants:
+   - "{author_name} [title] русский перевод"
+   - "{author_name} [title] на русском"
+   - "{title} {author_name} перевод"
+   - Standard transliterated queries as fallback
+
+Example enhanced queries for Russian author search prioritization.
+"""
     
     def _log_feedback(self, original: str, result: Dict[str, Any]):
         """Log normalization feedback for development iteration"""
