@@ -13,19 +13,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src'))
 
-# Test data structures (define before implementation)
-@dataclass
-class SearchResult:
-    """Standard search result across all sources"""
-    found: bool
-    title: str = ""
-    author: str = ""
-    source: str = ""
-    download_url: str = ""
-    file_id: str = ""
-    confidence: float = 0.0
-    response_time: float = 0.0
-    metadata: Dict[str, Any] = None
+# Import the actual SearchResult from our implementation
+from book_sources.base import SearchResult
 
 @dataclass
 class PipelineConfig:
@@ -35,6 +24,8 @@ class PipelineConfig:
     max_total_timeout: int = 120
     cache_enabled: bool = True
     parallel_search: bool = False
+    enable_claude_normalization: bool = False  # Disable for testing
+    language_aware_routing: bool = True
     
     def __post_init__(self):
         if self.fallback_chain is None:
@@ -371,14 +362,13 @@ class TestEdgeCasesAndNegativeScenarios:
         # Arrange
         pipeline = BookSearchPipeline()
         
-        # Act & Assert
+        # Act & Assert - should handle all gracefully without exception
+        result = await pipeline.search_book(fuzzy_input)
+        assert isinstance(result, SearchResult)
+        assert result.found == False  # Invalid inputs should not find results
+        
         if expected_type in ["empty_query", "too_short", "whitespace_only"]:
-            with pytest.raises(ValueError):
-                await pipeline.search_book(fuzzy_input)
-        else:
-            # Should handle gracefully without exception
-            result = await pipeline.search_book(fuzzy_input)
-            assert isinstance(result, SearchResult)
+            assert "Invalid input" in result.metadata.get("error", "")
 
 class TestFallbackChainVariations:
     """TDD: Different fallback chain configurations"""
