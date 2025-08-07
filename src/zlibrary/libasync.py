@@ -77,11 +77,10 @@ class AsyncZlib:
             self.mirror = self.domain
 
             if not proxy_list:
-                print(
-                    "Tor proxy must be set to route through onion domains.\n"
+                raise ProxyNotMatchError(
+                    "Tor proxy must be set to route through onion domains. "
                     "Set up a tor service and use: onion=True, proxy_list=['socks5://127.0.0.1:9050']"
                 )
-                exit(1)
         else:
             self.login_domain = LOGIN_DOMAIN
             self.domain = ZLIB_DOMAIN

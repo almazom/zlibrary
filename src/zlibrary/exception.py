@@ -24,8 +24,8 @@ class EmptyQueryError(Exception):
 
 
 class ProxyNotMatchError(Exception):
-    def __init__(self):
-        super().__init__("proxy_list must be a list.")
+    def __init__(self, message="proxy_list must be a list."):
+        super().__init__(message)
 
 
 class NoProfileError(Exception):

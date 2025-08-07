@@ -135,6 +135,9 @@ class SearchPaginator:
     async def init(self):
         page = await self.fetch_page()
         self.parse_page(page)
+        # Set initial results after parsing
+        if self.page in self.storage and self.storage[self.page]:
+            self.result = self.storage[self.page][:self.count]
 
     async def fetch_page(self):
         if self.__r:
@@ -482,7 +485,7 @@ class BookItem(dict):
 
         title = zcover.get("title")
         if title:
-            if type(title) is list[str]:
+            if isinstance(title, list):
                 parsed["name"] = title[0].strip()
             elif type(title) is str:
                 parsed["name"] = title.strip()

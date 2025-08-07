@@ -23,7 +23,7 @@ async def GET_request(url, cookies=None, proxy_list=None) -> str:
     try:
         async with aiohttp.ClientSession(
             headers=HEAD,
-            cookie_jar=aiohttp.CookieJar(unsafe=True),
+            cookie_jar=aiohttp.CookieJar(),
             cookies=cookies,
             timeout=TIMEOUT,
             connector=ChainProxyConnector.from_urls(proxy_list) if proxy_list else None,
@@ -41,7 +41,7 @@ async def GET_request_cookies(
     try:
         async with aiohttp.ClientSession(
             headers=HEAD,
-            cookie_jar=aiohttp.CookieJar(unsafe=True),
+            cookie_jar=aiohttp.CookieJar(),
             cookies=cookies,
             timeout=TIMEOUT,
             connector=ChainProxyConnector.from_urls(proxy_list) if proxy_list else None,
@@ -58,7 +58,7 @@ async def POST_request(url, data, proxy_list=None):
         async with aiohttp.ClientSession(
             headers=HEAD,
             timeout=TIMEOUT,
-            cookie_jar=aiohttp.CookieJar(unsafe=True),
+            cookie_jar=aiohttp.CookieJar(),
             connector=ChainProxyConnector.from_urls(proxy_list) if proxy_list else None,
         ) as sess:
             logger.info("POST %s" % url)
