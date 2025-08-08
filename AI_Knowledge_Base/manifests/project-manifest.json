@@ -56,6 +56,11 @@
       "area": "Visual Pipeline System",
       "memory_card": "mc_visual_pipeline_complete_20250807.md", 
       "description": "Complete visual pipeline system with real-time UI, fuzzy input processing, and EPUB downloads"
+    },
+    {
+      "area": "Dual Confidence JSON Schema",
+      "memory_card": "mc_dual_confidence_json_schema_20250808.md",
+      "description": "Complete JSON schema with dual confidence system - book matching accuracy and EPUB readability quality with Russian descriptions"
     }
   ],
   "current_status": {
@@ -137,6 +142,27 @@
       ],
       "real_testing": "648KB Harry Potter EPUB successfully downloaded",
       "performance": "Complete end-to-end: fuzzy input → EPUB file in 8-45 seconds"
+    },
+    "enhanced_dual_confidence_system": {
+      "added": "2025-08-08",
+      "description": "Complete dual confidence JSON schema with actual EPUB downloads and quality assessment",
+      "features": [
+        "Dual confidence system: book matching + EPUB readability quality",
+        "Russian language confidence descriptions for user clarity",
+        "7-factor EPUB quality assessment (file size, publisher, year, etc.)",
+        "Actual EPUB download URLs with complete file information",
+        "Multi-input format support (URL, TXT, IMAGE placeholder)",
+        "100% JSON schema compliance with structured error handling",
+        "Enhanced bash runner integration for external systems"
+      ],
+      "confidence_levels": {
+        "book_matching": ["VERY_HIGH", "HIGH", "MEDIUM", "LOW", "VERY_LOW"],
+        "epub_quality": ["EXCELLENT", "GOOD", "FAIR", "POOR", "VERY_POOR"]
+      },
+      "bash_runner": "scripts/zlib_search_enhanced.sh",
+      "schema_file": "schemas/book_search_response_schema.json",
+      "test_coverage": "100% schema compliance (8/8 tests)",
+      "user_benefit": "Clear decision making with dual confidence + actual download paths"
     }
   }
 }
