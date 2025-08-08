@@ -1,0 +1,14 @@
+# Z-Library Accounts Configuration
+# Format: email:password (one per line)
+# Lines starting with # are ignored
+
+# Example accounts (replace with your real accounts):
+account1@example.com:password1
+account2@example.com:password2
+account3@example.com:password3
+account4@example.com:password4
+account5@example.com:password5
+
+# You can add as many accounts as you want
+# The system will automatically rotate between them
+# when daily limits are reached

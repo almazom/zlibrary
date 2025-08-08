@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "updated": "2025-08-07T06:28:09.946906",
+  "accounts": [
+    {
+      "email": "test@test.com",
+      "password": "pass",
+      "daily_limit": 10,
+      "daily_used": 0,
+      "daily_remaining": 10,
+      "reset_time": null,
+      "last_used": null,
+      "is_active": true,
+      "login_failures": 0,
+      "notes": "test note"
+    }
+  ]
+}
