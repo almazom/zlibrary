@@ -1,0 +1,163 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Book Search Service Response",
+  "description": "Standardized JSON response schema for URL-to-EPUB book search service",
+  "type": "object",
+  "required": [
+    "status",
+    "timestamp",
+    "input_format",
+    "query_info",
+    "result"
+  ],
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["success", "not_found", "error"],
+      "description": "Overall status of the search operation"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of the response"
+    },
+    "input_format": {
+      "type": "string",
+      "enum": ["url", "txt", "image"],
+      "description": "Type of input provided by user"
+    },
+    "query_info": {
+      "type": "object",
+      "required": ["original_input", "extracted_query"],
+      "properties": {
+        "original_input": {
+          "type": "string",
+          "description": "Original input provided by user (URL, text, or image path)"
+        },
+        "extracted_query": {
+          "type": "string",
+          "description": "Search query extracted from the input"
+        }
+      }
+    },
+    "result": {
+      "oneOf": [
+        {
+          "type": "object",
+          "description": "Success result with book information",
+          "required": [
+            "found",
+            "epub_download_url",
+            "confidence",
+            "book_info",
+            "service_used"
+          ],
+          "properties": {
+            "found": {
+              "type": "boolean",
+              "const": true
+            },
+            "epub_download_url": {
+              "type": ["string", "null"],
+              "format": "uri",
+              "description": "Direct download URL for the EPUB file, null if not available"
+            },
+            "confidence": {
+              "type": "object",
+              "required": ["score", "level", "description", "recommended"],
+              "properties": {
+                "score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Confidence score from 0.0 to 1.0"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": ["VERY_HIGH", "HIGH", "MEDIUM", "LOW", "VERY_LOW"],
+                  "description": "Human-readable confidence level"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Human-readable confidence description"
+                },
+                "recommended": {
+                  "type": "boolean",
+                  "description": "Whether this result is recommended for download"
+                }
+              }
+            },
+            "book_info": {
+              "type": "object",
+              "required": ["title", "authors"],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "Book title"
+                },
+                "authors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "List of book authors"
+                },
+                "year": {
+                  "type": ["string", "null"],
+                  "description": "Publication year"
+                },
+                "publisher": {
+                  "type": ["string", "null"],
+                  "description": "Publisher name"
+                },
+                "size": {
+                  "type": ["string", "null"],
+                  "description": "File size (e.g., '1.2 MB')"
+                },
+                "description": {
+                  "type": ["string", "null"],
+                  "description": "Book description/summary"
+                }
+              }
+            },
+            "service_used": {
+              "type": "string",
+              "enum": ["zlibrary", "flibusta"],
+              "description": "Which service provided the book"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Not found result",
+          "required": ["found", "message"],
+          "properties": {
+            "found": {
+              "type": "boolean",
+              "const": false
+            },
+            "message": {
+              "type": "string",
+              "description": "Explanation of why no book was found"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "description": "Error result",
+          "required": ["error", "message"],
+          "properties": {
+            "error": {
+              "type": "string",
+              "description": "Error code or type"
+            },
+            "message": {
+              "type": "string",
+              "description": "Human-readable error message"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
