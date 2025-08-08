@@ -1,0 +1,4 @@
+# Pipeline Visualization Dependencies
+# Beautiful terminal UI and progress indicators
+
+rich>=13.0.0         # Terminal UI framework with emojis and styling

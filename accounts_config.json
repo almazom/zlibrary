@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "updated": "2025-08-07T06:58:15.062147",
+  "accounts": [
+    {
+      "email": "almazomam2@gmail.com",
+      "password": "Alombk78\\!5",
+      "daily_limit": 10,
+      "daily_used": 0,
+      "daily_remaining": 10,
+      "reset_time": null,
+      "last_used": null,
+      "is_active": false,
+      "login_failures": 0,
+      "notes": "Account almazomam2@gmail.com"
+    },
+    {
+      "email": "almazomam@gmail.com",
+      "password": "Alombk78\\!5",
+      "daily_limit": 10,
+      "daily_used": 0,
+      "daily_remaining": 10,
+      "reset_time": null,
+      "last_used": null,
+      "is_active": false,
+      "login_failures": 1,
+      "notes": "Account almazomam@gmail.com"
+    },
+    {
+      "email": "almazomam3@gmail.com",
+      "password": "Alombk78\\!5",
+      "daily_limit": 10,
+      "daily_used": 0,
+      "daily_remaining": 10,
+      "reset_time": null,
+      "last_used": null,
+      "is_active": false,
+      "login_failures": 1,
+      "notes": "Account almazomam3@gmail.com"
+    }
+  ]
+}
