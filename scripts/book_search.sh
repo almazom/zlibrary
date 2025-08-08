@@ -45,7 +45,7 @@ show_help() {
 Enhanced Z-Library Book Search Service
 
 USAGE:
-    zlib_search_enhanced.sh [OPTIONS] "INPUT"
+    book_search.sh [OPTIONS] "INPUT"
 
 OPTIONS:
     --format FORMAT       File format (epub, pdf, mobi, etc.)
@@ -70,13 +70,13 @@ OUTPUT:
 
 EXAMPLES:
     # Search by URL
-    ./zlib_search_enhanced.sh "https://www.podpisnie.ru/books/maniac/"
+    ./scripts/book_search.sh "https://www.podpisnie.ru/books/maniac/"
     
-    # Search by text
-    ./zlib_search_enhanced.sh "Clean Code Robert Martin"
+    # Search by text  
+    ./scripts/book_search.sh "Clean Code Robert Martin"
     
     # Download with confidence check
-    ./zlib_search_enhanced.sh --download "Harry Potter philosopher stone"
+    ./scripts/book_search.sh --download "Harry Potter philosopher stone"
 
 EOF
 }

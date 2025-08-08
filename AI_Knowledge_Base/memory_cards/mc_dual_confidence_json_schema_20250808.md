@@ -175,7 +175,7 @@ Complete JSON schema template with **TWO separate confidence levels** - one for 
 - **`schemas/book_search_response_schema.json`**: Complete JSON schema definition
 
 ### Integration
-- **`scripts/zlib_search_enhanced.sh`**: Universal bash runner using enhanced service
+- **`scripts/book_search.sh`**: Universal bash runner using enhanced service (renamed for simplicity)
 - **`service_simulation_demo.py`**: Full service simulation with examples
 
 ## Input Format Support
@@ -189,13 +189,13 @@ Complete JSON schema template with **TWO separate confidence levels** - one for 
 
 ### Basic Search
 ```bash
-./scripts/zlib_search_enhanced.sh "1984 George Orwell"
+./scripts/book_search.sh "1984 George Orwell"
 # Returns: confidence + readability, no download
 ```
 
 ### With Download
 ```bash
-./scripts/zlib_search_enhanced.sh --download "1984 George Orwell"
+./scripts/book_search.sh --download "1984 George Orwell"
 # Returns: confidence + readability + actual EPUB file
 ```
 

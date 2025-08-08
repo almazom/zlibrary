@@ -15,6 +15,7 @@
 | **mc_visual_pipeline_complete_20250807.md** | **Visual** | **Complete Visual Pipeline System** | **2025-08-07** | **Active** |
 | **mc_book_downloads_20250808.md** | **Operations** | **Book Downloads & Service Tracking** | **2025-08-08** | **Active** |
 | **mc_dual_confidence_json_schema_20250808.md** | **Schema** | **Dual Confidence JSON Schema System** | **2025-08-08** | **Active** |
+| **mc_scripts_reorganization_20250808.md** | **Operations** | **Scripts Folder Reorganization & Naming** | **2025-08-08** | **Active** |
 
 ## Deep Research Archives
 | File | Topic | Created | Status |
@@ -62,9 +63,9 @@ print(f'Found: {result.found} via {result.source}')
 # Complete end-to-end with EPUB download
 ./scripts/zlib_book_search_fixed.sh --service --json -f epub --download "Harry Potter"
 
-# Enhanced dual confidence system (2025-08-08)
-./scripts/zlib_search_enhanced.sh "1984 George Orwell"                    # Search only
-./scripts/zlib_search_enhanced.sh --download "1984 George Orwell"        # With download
+# Enhanced dual confidence system (2025-08-08) - renamed for simplicity
+./scripts/book_search.sh "1984 George Orwell"                           # Search only
+./scripts/book_search.sh --download "1984 George Orwell"                # With download
 python3 service_simulation_demo.py                                       # Full simulation
 ```
 
@@ -73,6 +74,7 @@ python3 service_simulation_demo.py                                       # Full 
 - **EPUB Quality Confidence**: How readable and high-quality the EPUB is  
 - **Russian Descriptions**: User-friendly explanations
 - **Actual Download URLs**: Real file paths when downloads succeed
+- **Main Script**: `scripts/book_search.sh` (renamed for simplicity)
 - **Schema File**: `schemas/book_search_response_schema.json`
 
 ---

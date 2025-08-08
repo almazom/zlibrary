@@ -13,7 +13,7 @@ class EnhancedScriptTester:
     """Test the enhanced bash script comprehensively"""
     
     def __init__(self):
-        self.script_path = Path(__file__).parent / "scripts" / "zlib_search_enhanced.sh"
+        self.script_path = Path(__file__).parent / "scripts" / "book_search.sh"
         self.test_cases = [
             # URL inputs
             {

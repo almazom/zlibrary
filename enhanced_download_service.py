@@ -16,7 +16,7 @@ class EnhancedDownloadService:
     """Service that provides actual EPUB downloads with readability confidence"""
     
     def __init__(self):
-        self.script_path = Path(__file__).parent / "scripts" / "zlib_book_search_fixed.sh"
+        self.script_path = Path(__file__).parent / "scripts" / "archived" / "zlib_book_search_fixed.sh"
         self.download_dir = Path("downloads")
         self.download_dir.mkdir(exist_ok=True)
     

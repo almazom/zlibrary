@@ -6,14 +6,14 @@
 
 ## Key Achievement
 Created **single universal bash script** that combines all intelligence:
-- `/scripts/zlib_search_enhanced.sh` - main entry point
+- `/scripts/book_search.sh` - main entry point (renamed for simplicity)
 - Handles URL, TXT, IMAGE inputs with auto-detection
 - Always returns standardized JSON schema
 - Native bash confidence calculation + Python backends
 
 ## Usage
 ```bash
-./scripts/zlib_search_enhanced.sh "ANY_INPUT"
+./scripts/book_search.sh "ANY_INPUT"
 ```
 
 ## Input Types (Auto-Detected)
@@ -61,16 +61,16 @@ Created **single universal bash script** that combines all intelligence:
 ## Integration Ready
 ```bash
 # Shell
-RESULT=$(./scripts/zlib_search_enhanced.sh "$INPUT")
+RESULT=$(./scripts/book_search.sh "$INPUT")
 echo "$RESULT" | jq '.result.confidence.recommended'
 
 # Python
-result = subprocess.run(['./scripts/zlib_search_enhanced.sh', input_text], ...)
+result = subprocess.run(['./scripts/book_search.sh', input_text], ...)
 response = json.loads(result.stdout)
 ```
 
 ## Files
-- `scripts/zlib_search_enhanced.sh` - main script
+- `scripts/book_search.sh` - main script (renamed for simplicity)
 - `test_enhanced_script.py` - comprehensive tests  
 - `ENHANCED_BASH_RUNNER_DOCS.md` - full documentation
 

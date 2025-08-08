@@ -1,7 +1,7 @@
 # Enhanced Bash Script Runner Documentation
 
 ## Overview
-The `zlib_search_enhanced.sh` script is the **main entry point** for all book search functionality. It combines all the intelligence we've built into a single, unified bash script that handles multiple input types with confidence scoring.
+The `book_search.sh` script is the **main entry point** for all book search functionality. It combines all the intelligence we've built into a single, unified bash script that handles multiple input types with confidence scoring.
 
 ## Key Features
 - ✅ **Universal Input Support**: URL, TXT, IMAGE (placeholder)
@@ -15,12 +15,12 @@ The `zlib_search_enhanced.sh` script is the **main entry point** for all book se
 
 ### Basic Usage
 ```bash
-./scripts/zlib_search_enhanced.sh "INPUT"
+./scripts/book_search.sh "INPUT"
 ```
 
 ### With Options
 ```bash
-./scripts/zlib_search_enhanced.sh [OPTIONS] "INPUT"
+./scripts/book_search.sh [OPTIONS] "INPUT"
 
 OPTIONS:
   --format FORMAT       File format (epub, pdf, mobi, etc.)
@@ -36,7 +36,7 @@ OPTIONS:
 ### 1. URL Input (auto-detected)
 ```bash
 # Podpisnie.ru URLs
-./scripts/zlib_search_enhanced.sh "https://www.podpisnie.ru/books/maniac/"
+./scripts/book_search.sh "https://www.podpisnie.ru/books/maniac/"
 
 # Response includes extracted query
 {
@@ -51,19 +51,19 @@ OPTIONS:
 ### 2. Text Input (auto-detected)
 ```bash
 # Book title and author
-./scripts/zlib_search_enhanced.sh "Harry Potter philosopher stone"
+./scripts/book_search.sh "Harry Potter philosopher stone"
 
 # Programming books
-./scripts/zlib_search_enhanced.sh "Clean Code Robert Martin"
+./scripts/book_search.sh "Clean Code Robert Martin"
 
 # Russian text
-./scripts/zlib_search_enhanced.sh "Гарри Поттер философский камень"
+./scripts/book_search.sh "Гарри Поттер философский камень"
 ```
 
 ### 3. Image Input (placeholder)
 ```bash
 # Will be auto-detected but not implemented yet
-./scripts/zlib_search_enhanced.sh "/path/to/book/cover.jpg"
+./scripts/book_search.sh "/path/to/book/cover.jpg"
 # Returns: {"status": "error", "error": "not_implemented"}
 ```
 
@@ -168,17 +168,17 @@ calculate_confidence() {
 ### Sample Results
 ```bash
 # ✅ WORKING CASES
-./scripts/zlib_search_enhanced.sh "https://www.podpisnie.ru/books/maniac/"
+./scripts/book_search.sh "https://www.podpisnie.ru/books/maniac/"
 # → VERY_HIGH confidence (1.0)
 
-./scripts/zlib_search_enhanced.sh "Harry Potter philosopher stone"  
+./scripts/book_search.sh "Harry Potter philosopher stone"  
 # → VERY_HIGH confidence (1.0)
 
 # ⚠️ CHALLENGING CASES
-./scripts/zlib_search_enhanced.sh "Гарри Поттер философский камень"
+./scripts/book_search.sh "Гарри Поттер философский камень"
 # → ERROR: search_failed (backend issue)
 
-./scripts/zlib_search_enhanced.sh "random nonexistent book"
+./scripts/book_search.sh "random nonexistent book"
 # → ERROR: search_failed (expected)
 ```
 
@@ -188,7 +188,7 @@ calculate_confidence() {
 ```bash
 #!/bin/bash
 INPUT="$1"
-RESULT=$(./scripts/zlib_search_enhanced.sh "$INPUT")
+RESULT=$(./scripts/book_search.sh "$INPUT")
 STATUS=$(echo "$RESULT" | jq -r '.status')
 
 case "$STATUS" in
@@ -213,7 +213,7 @@ import json
 
 def enhanced_search(input_text):
     result = subprocess.run([
-        './scripts/zlib_search_enhanced.sh', 
+        './scripts/book_search.sh', 
         input_text
     ], capture_output=True, text=True)
     
@@ -238,7 +238,7 @@ app = FastAPI()
 @app.post("/search-enhanced")
 async def search_enhanced(input_text: str):
     result = subprocess.run([
-        './scripts/zlib_search_enhanced.sh',
+        './scripts/book_search.sh',
         input_text
     ], capture_output=True, text=True)
     
@@ -294,16 +294,16 @@ This script successfully brings together all the intelligence we've built into a
 
 ```bash
 # Make executable
-chmod +x scripts/zlib_search_enhanced.sh
+chmod +x scripts/book_search.sh
 
 # Test with text
-./scripts/zlib_search_enhanced.sh "Clean Code Robert Martin"
+./scripts/book_search.sh "Clean Code Robert Martin"
 
 # Test with URL  
-./scripts/zlib_search_enhanced.sh "https://www.podpisnie.ru/books/maniac/"
+./scripts/book_search.sh "https://www.podpisnie.ru/books/maniac/"
 
 # Test with options
-./scripts/zlib_search_enhanced.sh --download "Harry Potter philosopher stone"
+./scripts/book_search.sh --download "Harry Potter philosopher stone"
 ```
 
 The enhanced script is ready for production use with known limitations and excellent foundation for future enhancements!

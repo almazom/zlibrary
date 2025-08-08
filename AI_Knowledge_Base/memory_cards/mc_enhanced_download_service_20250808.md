@@ -55,8 +55,8 @@ User complaint: *"in this json i can not see find there is not path to download 
 - **Purpose**: Command-line interface for the enhanced service
 - **Usage**: `python3 enhanced_download_cli.py "query" [--download]`
 
-### 3. Updated Bash Script (`scripts/zlib_search_enhanced.sh`)
-- **Change**: Now uses enhanced service instead of basic backends
+### 3. Updated Bash Script (`scripts/book_search.sh`)
+- **Change**: Now uses enhanced service instead of basic backends (renamed for simplicity)
 - **Result**: Always includes both download URLs and readability confidence
 
 ### 4. Updated JSON Schema (`schemas/book_search_response_schema.json`)
@@ -85,19 +85,19 @@ User complaint: *"in this json i can not see find there is not path to download 
 
 ### Basic Search (no download)
 ```bash
-./scripts/zlib_search_enhanced.sh "Harry Potter philosopher stone"
+./scripts/book_search.sh "Harry Potter philosopher stone"
 # Returns: epub_download_url = null, readability based on metadata
 ```
 
 ### With Download
 ```bash  
-./scripts/zlib_search_enhanced.sh --download "Harry Potter philosopher stone"
+./scripts/book_search.sh --download "Harry Potter philosopher stone"
 # Returns: actual file path, readability with download success bonus
 ```
 
 ### URL Input
 ```bash
-./scripts/zlib_search_enhanced.sh "https://www.podpisnie.ru/books/maniac/"
+./scripts/book_search.sh "https://www.podpisnie.ru/books/maniac/"
 # Returns: works with any input type
 ```
 
@@ -129,7 +129,7 @@ User complaint: *"in this json i can not see find there is not path to download 
 The enhanced script is the single universal endpoint:
 ```bash
 # Always returns both download info and readability
-./scripts/zlib_search_enhanced.sh [--download] "ANY_INPUT"
+./scripts/book_search.sh [--download] "ANY_INPUT"
 ```
 
 **This fully addresses the user's complaint about missing download URLs and readability confidence.**

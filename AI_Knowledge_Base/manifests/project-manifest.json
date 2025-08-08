@@ -159,7 +159,7 @@
         "book_matching": ["VERY_HIGH", "HIGH", "MEDIUM", "LOW", "VERY_LOW"],
         "epub_quality": ["EXCELLENT", "GOOD", "FAIR", "POOR", "VERY_POOR"]
       },
-      "bash_runner": "scripts/zlib_search_enhanced.sh",
+      "bash_runner": "scripts/book_search.sh",
       "schema_file": "schemas/book_search_response_schema.json",
       "test_coverage": "100% schema compliance (8/8 tests)",
       "user_benefit": "Clear decision making with dual confidence + actual download paths"
