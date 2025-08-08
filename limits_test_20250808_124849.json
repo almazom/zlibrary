@@ -1,0 +1,48 @@
+{
+  "test_timestamp": "2025-08-08T12:48:49.290476",
+  "summary": {
+    "accounts_tested": 3,
+    "successful": 2,
+    "failed": 1,
+    "total_remaining": 20,
+    "total_allowed": 20
+  },
+  "accounts": [
+    {
+      "account": 1,
+      "email": "almazomam2@gmail.com",
+      "timestamp": "2025-08-08T12:48:45.736951",
+      "status": "error",
+      "limits": null,
+      "error": "'NoneType' object has no attribute 'get'"
+    },
+    {
+      "account": 2,
+      "email": "almazomam@gmail.com",
+      "timestamp": "2025-08-08T12:48:46.443832",
+      "status": "success",
+      "limits": {
+        "daily_amount": 0,
+        "daily_allowed": 10,
+        "daily_remaining": 10,
+        "daily_reset": "Downloads will be reset in 11h 12m",
+        "usage_percentage": 0.0
+      },
+      "error": null
+    },
+    {
+      "account": 3,
+      "email": "almazomam3@gmail.com",
+      "timestamp": "2025-08-08T12:48:47.872124",
+      "status": "success",
+      "limits": {
+        "daily_amount": 0,
+        "daily_allowed": 10,
+        "daily_remaining": 10,
+        "daily_reset": "Downloads will be reset in 11h 12m",
+        "usage_percentage": 0.0
+      },
+      "error": null
+    }
+  ]
+}

@@ -48,7 +48,9 @@
           "required": [
             "found",
             "epub_download_url",
+            "download_info",
             "confidence",
+            "readability",
             "book_info",
             "service_used"
           ],
@@ -61,6 +63,37 @@
               "type": ["string", "null"],
               "format": "uri",
               "description": "Direct download URL for the EPUB file, null if not available"
+            },
+            "download_info": {
+              "type": "object",
+              "required": ["available", "url"],
+              "properties": {
+                "available": {
+                  "type": "boolean",
+                  "description": "Whether the file is available for download"
+                },
+                "url": {
+                  "type": ["string", "null"],
+                  "format": "uri",
+                  "description": "Download URL if available"
+                },
+                "local_path": {
+                  "type": ["string", "null"],
+                  "description": "Local file path if downloaded"
+                },
+                "filename": {
+                  "type": ["string", "null"],
+                  "description": "Downloaded filename"
+                },
+                "file_size": {
+                  "type": ["integer", "null"],
+                  "description": "File size in bytes"
+                },
+                "reason": {
+                  "type": ["string", "null"],
+                  "description": "Reason why download is not available"
+                }
+              }
             },
             "confidence": {
               "type": "object",
@@ -84,6 +117,34 @@
                 "recommended": {
                   "type": "boolean",
                   "description": "Whether this result is recommended for download"
+                }
+              }
+            },
+            "readability": {
+              "type": "object",
+              "required": ["score", "level", "description"],
+              "properties": {
+                "score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Readability quality score from 0.0 to 1.0"
+                },
+                "level": {
+                  "type": "string",
+                  "enum": ["EXCELLENT", "GOOD", "FAIR", "POOR", "VERY_POOR"],
+                  "description": "Readability quality level"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Russian description of readability quality"
+                },
+                "factors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "List of factors affecting readability score"
                 }
               }
             },

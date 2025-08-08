@@ -264,55 +264,16 @@ EOF
         local service_used="${11}"
         local epub_url="${12:-null}"
         
-        # Calculate confidence if enabled
-        local confidence_score="0.5"
-        local confidence_level="MEDIUM"
-        local confidence_desc="Средняя уверенность - возможно это нужная книга"
-        local recommended="true"
-        
-        if [[ "$CONFIDENCE_ENABLED" == "true" ]]; then
-            local confidence_result
-            confidence_result=$(calculate_confidence "$original_input" "$found_title" "$found_authors")
-            confidence_score=$(echo "$confidence_result" | awk '{print $1}')
-            confidence_level=$(echo "$confidence_result" | awk '{print $2}')
-            
-            case "$confidence_level" in
-                "VERY_HIGH") confidence_desc="Очень высокая уверенность - это точно искомая книга" ;;
-                "HIGH") confidence_desc="Высокая уверенность - скорее всего это нужная книга" ;;
-                "MEDIUM") confidence_desc="Средняя уверенность - возможно это нужная книга" ;;
-                "LOW") confidence_desc="Низкая уверенность - вряд ли это искомая книга" ;;
-                "VERY_LOW") confidence_desc="Очень низкая уверенность - это не та книга" ;;
-            esac
-            
-            recommended=$(echo "$confidence_score >= 0.4" | bc -l)
-            [[ "$recommended" == "1" ]] && recommended="true" || recommended="false"
-        fi
+        # Enhanced service now provides both match confidence and readability confidence
+        # This old calculation is no longer needed as the enhanced backend handles it
         
         # Clean authors array
         local authors_json
         authors_json=$(echo "$found_authors" | jq -R 'split(",") | map(. | gsub("^\\s+|\\s+$"; "")) | map(select(length > 2 and (. | test("comment|support|amazon|litres|barnes|noble|bookshop"; "i") | not))) | .[0:3]')
         
-        cat << EOF
-  "result": {
-    "found": true,
-    "epub_download_url": $epub_url,
-    "confidence": {
-      "score": $confidence_score,
-      "level": "$confidence_level",
-      "description": $(echo "$confidence_desc" | jq -R .),
-      "recommended": $recommended
-    },
-    "book_info": {
-      "title": $(echo "$found_title" | jq -R .),
-      "authors": $authors_json,
-      "year": $(echo "${found_year:-null}" | jq -R 'if . == "" or . == "null" then null else . end'),
-      "publisher": $(echo "${found_publisher:-null}" | jq -R 'if . == "" or . == "null" then null else . end'),
-      "size": $(echo "${found_size:-null}" | jq -R 'if . == "" or . == "null" then null else . end'),
-      "description": $(echo "${found_description:-null}" | jq -R 'if . == "" or . == "null" then null else (.[0:300] + if length > 300 then "..." else "" end) end')
-    },
-    "service_used": "$service_used"
-  }
-EOF
+        # Note: Enhanced service provides complete JSON response, so this old template is not used
+        # The enhanced backend already provides the full standardized response
+        echo "  \"result\": \"enhanced_service_response\""
     elif [[ "$status" == "not_found" ]]; then
         local message="$5"
         cat << EOF
@@ -343,29 +304,28 @@ load_env() {
     fi
 }
 
-# Main search function using Python backend
+# Main search function using enhanced Python backend
 search_book() {
     local input_format="$1"
     local original_input="$2"
     local extracted_query="$3"
     
-    # Use our existing Python service based on input format
+    # Use the enhanced download service that provides both download URLs and readability confidence
     local result
-    if [[ "$input_format" == "url" ]]; then
-        result=$(python3 "$PROJECT_ROOT/book_search_api_cli.py" "$original_input" 2>/dev/null || echo "")
-    elif [[ "$input_format" == "txt" ]]; then
-        result=$(python3 "$PROJECT_ROOT/txt_to_epub_cli.py" "$original_input" 2>/dev/null || echo "")
-    else
-        # Image format - not implemented yet
-        generate_json_response "error" "$input_format" "$original_input" "$extracted_query" "not_implemented" "Image input not yet supported"
-        return 1
+    local cmd_args=("$PROJECT_ROOT/enhanced_download_cli.py" "$original_input")
+    
+    # Add download flag if requested
+    if [[ "$DOWNLOAD" == "true" ]]; then
+        cmd_args+=("--download")
     fi
+    
+    result=$(python3 "${cmd_args[@]}" 2>/dev/null || echo "")
     
     if [[ -n "$result" ]]; then
         echo "$result"
         return 0
     else
-        generate_json_response "error" "$input_format" "$original_input" "$extracted_query" "backend_error" "Failed to get response from backend service"
+        generate_json_response "error" "$input_format" "$original_input" "$extracted_query" "backend_error" "Failed to get response from enhanced backend service"
         return 1
     fi
 }
