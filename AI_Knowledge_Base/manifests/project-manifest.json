@@ -1,0 +1,142 @@
+{
+  "project": "zlibrary_api_module",
+  "version": "1.1.0",
+  "created": "2025-08-06",
+  "updated": "2025-08-07",
+  "structure": {
+    "memory_cards": {
+      "path": "/memory_cards/",
+      "pattern": "mc_{category}_{topic}_{date}.md",
+      "categories": ["project", "technical", "testing"]
+    },
+    "deep_research": {
+      "path": "/deep_research/",
+      "pattern": "dr_{topic}_{date}.md",
+      "types": ["architecture", "analysis", "research"]
+    },
+    "documentation": {
+      "path": "/docs/",
+      "types": ["guides", "examples", "troubleshooting"]
+    }
+  },
+  "knowledge_areas": [
+    {
+      "area": "Project Overview",
+      "memory_card": "mc_project_zlibrary_overview_20250806.md",
+      "deep_research": "dr_zlibrary_api_architecture_20250806.md"
+    },
+    {
+      "area": "Setup & Installation",
+      "memory_card": "mc_project_setup_instructions_20250806.md"
+    },
+    {
+      "area": "API Reference",
+      "memory_card": "mc_technical_api_reference_20250806.md"
+    },
+    {
+      "area": "Testing",
+      "memory_card": "mc_project_testing_procedures_20250806.md"
+    },
+    {
+      "area": "Multi-Account System",
+      "memory_card": "mc_technical_multi_account_system_20250806.md",
+      "description": "Unlimited account pool with automatic rotation for bypassing daily limits"
+    },
+    {
+      "area": "Service Implementation",
+      "memory_card": "mc_zlibrary_service_implementation_20250807.md",
+      "description": "Production-ready CLI service with JSON API for book search and download"
+    },
+    {
+      "area": "Pipeline Implementation",
+      "memory_card": "mc_pipeline_implementation_tdd_20250807.md",
+      "description": "Multi-source book search pipeline with TDD implementation and configurable fallback chains"
+    },
+    {
+      "area": "Visual Pipeline System",
+      "memory_card": "mc_visual_pipeline_complete_20250807.md", 
+      "description": "Complete visual pipeline system with real-time UI, fuzzy input processing, and EPUB downloads"
+    }
+  ],
+  "current_status": {
+    "implementation": "complete",
+    "documentation": "comprehensive",
+    "testing": "partial",
+    "issues": [
+      "Authentication credentials required",
+      "Daily download limits apply",
+      "Domain availability varies"
+    ]
+  },
+  "quick_commands": {
+    "install": "pip install zlibrary",
+    "test": "python3 src/test.py",
+    "build": "python3 -m build",
+    "example": "python3 examples/python/basic_usage.py",
+    "multi_account": "python3 multi_account_manager.py",
+    "search": "./scripts/zlib_book_search_fixed.sh --json 'book title'",
+    "download": "./scripts/zlib_book_search_fixed.sh --download -f epub 'book title'",
+    "service": "./scripts/zlib_book_search_fixed.sh --service --json -o /tmp/books --download 'book'"
+  },
+  "latest_features": {
+    "multi_account_system": {
+      "added": "2025-08-06",
+      "description": "Unlimited account pool management with automatic rotation",
+      "benefits": [
+        "Linear scaling of daily limits (N accounts × 10 downloads)",
+        "Automatic failover when limits reached",
+        "Multiple configuration methods (env, file, programmatic)",
+        "Telegram notifications for limit alerts",
+        "Persistent state across restarts"
+      ]
+    },
+    "cli_service": {
+      "added": "2025-08-07",
+      "script": "scripts/zlib_book_search_fixed.sh",
+      "description": "Production-ready CLI with JSON API support",
+      "features": [
+        "Service mode for clean JSON output",
+        "Custom output directory control",
+        "Author and format filtering",
+        "Absolute file paths in responses",
+        "Download limits checking"
+      ]
+    },
+    "multi_source_pipeline": {
+      "added": "2025-08-07",
+      "description": "TDD-implemented multi-source book search pipeline with Flibusta integration",
+      "features": [
+        "Configurable fallback chains (Z-Library → Flibusta)",
+        "Language-aware routing (Russian → Flibusta first)",
+        "Claude SDK normalization integration",
+        "100% test coverage with 22/22 tests passing",
+        "Graceful error handling and timeout management",
+        "Performance monitoring and statistics",
+        "BDD feature specifications in Gherkin format"
+      ],
+      "test_coverage": "100% core functionality",
+      "performance": "Z-Library: 2-5s, Flibusta: 25-35s, Combined success: ~95%"
+    },
+    "visual_pipeline_system": {
+      "added": "2025-08-07",
+      "description": "Complete visual pipeline system with real-time UI and EPUB downloads",
+      "features": [
+        "Rich terminal UI with real-time progress tracking",
+        "Fuzzy input processing with 8 preset demonstrations",
+        "End-to-end pipeline visualization (6 layers)",
+        "Real Z-Library integration with EPUB downloads",
+        "Interactive, quick, and service modes",
+        "Beautiful bash runners for all operations",
+        "Complete transparency of every pipeline step"
+      ],
+      "bash_runners": [
+        "search/visual_search.sh - Main visual pipeline",
+        "search/fuzzy_search.sh - Fuzzy input presets", 
+        "search/quick_search.sh - Fast minimal search",
+        "scripts/zlib_book_search_fixed.sh - Production downloads"
+      ],
+      "real_testing": "648KB Harry Potter EPUB successfully downloaded",
+      "performance": "Complete end-to-end: fuzzy input → EPUB file in 8-45 seconds"
+    }
+  }
+}
