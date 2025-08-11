@@ -1,0 +1,81 @@
+# Extraction prompts for different book websites
+# These prompts are used with Claude SDK to extract book information from URLs
+
+goodreads:
+  domains:
+    - "goodreads.com"
+  prompt: |
+    Extract the following book information from this Goodreads page:
+    - title: exact book title (in original language if shown)
+    - author: main author name(s)
+    - year: publication year
+    - description: brief description (max 200 chars)
+    - isbn: ISBN if available
+    - language: book language
+    - genre: main genre/category
+    
+    Return ONLY a JSON object with these fields. No additional text.
+
+podpisnie:
+  domains:
+    - "podpisnie.ru"
+  prompt: |
+    Extract book information from this Russian bookstore page:
+    - title: точное название книги (на русском)
+    - author: имя автора/авторов
+    - year: год публикации
+    - description: краткое описание (макс 200 символов)
+    - isbn: ISBN если доступен
+    - publisher: издательство
+    - language: язык книги
+    
+    Return ONLY a JSON object with these fields in English keys. No additional text.
+
+amazon:
+  domains:
+    - "amazon.com"
+    - "amazon.co.uk"
+    - "amazon.de"
+    - "amazon.fr"
+  prompt: |
+    Extract book information from this Amazon page:
+    - title: exact book title
+    - author: author name(s)
+    - year: publication year
+    - description: brief description (max 200 chars)
+    - isbn: ISBN-10 or ISBN-13
+    - publisher: publisher name
+    - language: book language
+    - format: book format (paperback/hardcover/kindle)
+    
+    Return ONLY a JSON object with these fields. No additional text.
+
+litres:
+  domains:
+    - "litres.ru"
+  prompt: |
+    Extract book information from this LitRes page:
+    - title: название книги
+    - author: автор(ы)
+    - year: год издания
+    - description: краткое описание (макс 200 символов)
+    - isbn: ISBN если есть
+    - publisher: издательство
+    - language: язык
+    - series: серия книг если есть
+    
+    Return ONLY a JSON object with these fields in English keys. No additional text.
+
+generic:
+  # Fallback for any other book-related URL
+  prompt: |
+    Extract book information from this webpage:
+    - title: book title
+    - author: author name(s) if available
+    - year: publication year if available
+    - description: brief description if available (max 200 chars)
+    - isbn: ISBN if available
+    - language: book language if detectable
+    
+    If this is not a book page, return {"error": "not_a_book_page"}
+    Otherwise return ONLY a JSON object with available fields. No additional text.
