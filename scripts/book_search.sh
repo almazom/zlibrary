@@ -33,6 +33,8 @@ ENV_FILE="$PROJECT_ROOT/.env"
 SERVICE_MODE="true"  # Always service mode
 INPUT_FORMAT=""  # Will be detected: url, txt, image
 CONFIDENCE_ENABLED="true"
+MIN_CONFIDENCE="0.4"  # Default minimum confidence
+MIN_QUALITY="ANY"     # Default minimum quality (ANY, FAIR, GOOD, EXCELLENT)
 
 # Print functions (only for non-service mode)
 print_error() { [[ "$SERVICE_MODE" != "true" ]] && echo -e "${RED}❌ ERROR: $*${NC}" >&2; }
@@ -53,6 +55,9 @@ OPTIONS:
     --output DIR          Output directory
     --download            Download the book
     --no-confidence       Disable confidence scoring
+    --min-confidence NUM  Minimum confidence score (0.0-1.0, default: 0.4)
+    --min-quality LEVEL   Minimum quality (ANY|FAIR|GOOD|EXCELLENT, default: ANY)
+    --strict              Use strict filtering (--min-confidence 0.8 --min-quality GOOD)
     --help                Show this help
 
 INPUT TYPES (auto-detected):
@@ -85,8 +90,8 @@ EOF
 detect_input_format() {
     local input="$1"
     
-    # Check if it's a URL
-    if [[ "$input" =~ ^https?:// ]]; then
+    # Check if it's a URL (including www.)
+    if [[ "$input" =~ ^https?:// ]] || [[ "$input" =~ ^www\. ]]; then
         echo "url"
     # Check if it's an image file path
     elif [[ "$input" =~ \.(jpg|jpeg|png|gif|webp)$ ]]; then
@@ -116,6 +121,22 @@ extract_query_from_url() {
         else
             # Generic: convert dashes to spaces, take first 3 words
             query=$(echo "$slug" | sed 's/-/ /g' | awk '{print $1 " " $2 " " $3}')
+        fi
+    
+    # Extract from Goodreads URLs
+    elif [[ "$url" =~ goodreads\.com/book/show/[0-9]+-([^/?]+) ]]; then
+        local title="${BASH_REMATCH[1]}"
+        query=$(echo "$title" | sed 's/-/ /g' | sed 's/_/ /g')
+    
+    # Extract from Amazon URLs
+    elif [[ "$url" =~ amazon\.[^/]+/.*/dp/([A-Z0-9]+) ]] || [[ "$url" =~ amazon\.[^/]+/([^/]+)/dp/ ]]; then
+        # Try to extract title from URL path
+        if [[ "$url" =~ amazon\.[^/]+/([^/]+)/dp/ ]]; then
+            local title="${BASH_REMATCH[1]}"
+            query=$(echo "$title" | sed 's/-/ /g' | awk '{for(i=1;i<=5 && i<=NF;i++) printf "%s ", $i; print ""}')
+        else
+            # Just ASIN, would need to lookup
+            query="book ${BASH_REMATCH[1]}"
         fi
     fi
     
@@ -304,28 +325,21 @@ load_env() {
     fi
 }
 
-# Main search function using enhanced Python backend
+# Main search function using simple Python backend
 search_book() {
     local input_format="$1"
     local original_input="$2"
     local extracted_query="$3"
     
-    # Use the enhanced download service that provides both download URLs and readability confidence
+    # Use the simple book search service with filtering and format parameters
     local result
-    local cmd_args=("$PROJECT_ROOT/enhanced_download_cli.py" "$original_input")
-    
-    # Add download flag if requested
-    if [[ "$DOWNLOAD" == "true" ]]; then
-        cmd_args+=("--download")
-    fi
-    
-    result=$(python3 "${cmd_args[@]}" 2>/dev/null || echo "")
+    result=$(FORMAT="$FORMAT" MIN_CONFIDENCE="$MIN_CONFIDENCE" MIN_QUALITY="$MIN_QUALITY" python3 "$PROJECT_ROOT/simple_book_search.py" "$extracted_query" 2>/dev/null || echo "")
     
     if [[ -n "$result" ]]; then
         echo "$result"
         return 0
     else
-        generate_json_response "error" "$input_format" "$original_input" "$extracted_query" "backend_error" "Failed to get response from enhanced backend service"
+        generate_json_response "error" "$input_format" "$original_input" "$extracted_query" "backend_error" "Failed to get response from backend service"
         return 1
     fi
 }
@@ -356,6 +370,19 @@ parse_args() {
                 ;;
             --no-confidence)
                 CONFIDENCE_ENABLED="false"
+                shift
+                ;;
+            --min-confidence)
+                MIN_CONFIDENCE="$2"
+                shift 2
+                ;;
+            --min-quality)
+                MIN_QUALITY="$2"
+                shift 2
+                ;;
+            --strict)
+                MIN_CONFIDENCE="0.8"
+                MIN_QUALITY="GOOD"
                 shift
                 ;;
             -*)
