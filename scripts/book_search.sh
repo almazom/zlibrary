@@ -35,6 +35,7 @@ INPUT_FORMAT=""  # Will be detected: url, txt, image
 CONFIDENCE_ENABLED="true"
 MIN_CONFIDENCE="0.4"  # Default minimum confidence
 MIN_QUALITY="ANY"     # Default minimum quality (ANY, FAIR, GOOD, EXCELLENT)
+CLAUDE_EXTRACT="false"  # Use Claude AI for URL extraction
 
 # Print functions (only for non-service mode)
 print_error() { [[ "$SERVICE_MODE" != "true" ]] && echo -e "${RED}❌ ERROR: $*${NC}" >&2; }
@@ -58,6 +59,7 @@ OPTIONS:
     --min-confidence NUM  Minimum confidence score (0.0-1.0, default: 0.4)
     --min-quality LEVEL   Minimum quality (ANY|FAIR|GOOD|EXCELLENT, default: ANY)
     --strict              Use strict filtering (--min-confidence 0.8 --min-quality GOOD)
+    --claude-extract      Use Claude AI to extract book info from URLs
     --help                Show this help
 
 INPUT TYPES (auto-detected):
@@ -102,11 +104,66 @@ detect_input_format() {
     fi
 }
 
-# Extract query from URL
+# Extract query from URL - enhanced with Claude extraction
 extract_query_from_url() {
     local url="$1"
     local query=""
     
+    # For ANY URL, try to extract book information
+    # This now works with ALL URLs, not just specific domains
+    if [[ "$url" =~ ^https?:// ]]; then
+        # Only print info in non-service mode
+        [[ "$SERVICE_MODE" != "true" ]] && echo "Extracting book information from URL..." >&2
+        
+        # Try different extractors in order of preference
+        local extractor_scripts=(
+            "$SCRIPT_DIR/universal_extractor.sh"
+            "$SCRIPT_DIR/claude_url_extractor.py"
+            "$SCRIPT_DIR/simple_claude_extractor.py"
+        )
+        
+        local claude_result=""
+        for extractor_script in "${extractor_scripts[@]}"; do
+            if [[ -f "$extractor_script" ]]; then
+                if [[ "$extractor_script" == *.sh ]]; then
+                    claude_result=$(bash "$extractor_script" "$url" 2>/dev/null || echo "{}")
+                else
+                    claude_result=$(python3 "$extractor_script" "$url" 2>/dev/null || echo "{}")
+                fi
+                
+                # If we got a valid result, use it
+                if [[ -n "$claude_result" ]] && [[ "$claude_result" != "{}" ]] && [[ "$claude_result" != *"error"* ]]; then
+                    break
+                fi
+            fi
+        done
+        
+        # Process extraction result
+        if [[ -n "$claude_result" ]] && [[ "$claude_result" != "{}" ]]; then
+            local extracted_title
+            local extracted_author
+            
+            extracted_title=$(echo "$claude_result" | jq -r '.title // empty' 2>/dev/null || echo "")
+            extracted_author=$(echo "$claude_result" | jq -r '.author // empty' 2>/dev/null || echo "")
+            
+            if [[ -n "$extracted_title" ]]; then
+                query="$extracted_title"
+                if [[ -n "$extracted_author" ]] && [[ "$extracted_author" != "null" ]]; then
+                    query="$query $extracted_author"
+                fi
+                
+                # Store full extraction result for later use
+                export CLAUDE_EXTRACTION_RESULT="$claude_result"
+                
+                if [[ -n "$query" ]]; then
+                    echo "$query"
+                    return 0
+                fi
+            fi
+        fi
+    fi
+    
+    # Fallback to pattern-based extraction
     # Extract from podpisnie.ru URLs
     if [[ "$url" =~ podpisnie\.ru/books/([^/]+) ]]; then
         local slug="${BASH_REMATCH[1]}"
@@ -123,7 +180,7 @@ extract_query_from_url() {
             query=$(echo "$slug" | sed 's/-/ /g' | awk '{print $1 " " $2 " " $3}')
         fi
     
-    # Extract from Goodreads URLs
+    # Extract from Goodreads URLs (fallback if Claude fails)
     elif [[ "$url" =~ goodreads\.com/book/show/[0-9]+-([^/?]+) ]]; then
         local title="${BASH_REMATCH[1]}"
         query=$(echo "$title" | sed 's/-/ /g' | sed 's/_/ /g')
@@ -385,6 +442,10 @@ parse_args() {
                 MIN_QUALITY="GOOD"
                 shift
                 ;;
+            --claude-extract)
+                CLAUDE_EXTRACT="true"
+                shift
+                ;;
             -*)
                 generate_json_response "error" "" "" "" "invalid_option" "Unknown option: $1" >&2
                 exit 1
@@ -418,6 +479,11 @@ main() {
     
     # Detect input format
     INPUT_FORMAT=$(detect_input_format "$QUERY")
+    
+    # Auto-enable download for URLs if not explicitly set
+    if [[ "$INPUT_FORMAT" == "url" ]] && [[ "$DOWNLOAD" == "false" ]]; then
+        DOWNLOAD="true"  # Automatically download when URL is provided
+    fi
     
     # Extract appropriate query
     local extracted_query
