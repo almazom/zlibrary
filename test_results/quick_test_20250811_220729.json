@@ -1,0 +1,51 @@
+{
+  "timestamp": "2025-08-11T22:07:29.816289",
+  "summary": {
+    "yes": 7,
+    "no": 1,
+    "error": 0,
+    "total": 8
+  },
+  "tests": [
+    {
+      "name": "UC1.1 - Programming Book",
+      "query": "Clean Code Robert Martin",
+      "verdict": "YES"
+    },
+    {
+      "name": "UC1.2 - Classic Fiction",
+      "query": "1984 George Orwell",
+      "verdict": "YES"
+    },
+    {
+      "name": "UC1.3 - Self-Help",
+      "query": "Atomic Habits James Clear",
+      "verdict": "YES"
+    },
+    {
+      "name": "UC2.1 - Non-existent Book",
+      "query": "xyz999 fake book qwerty",
+      "verdict": "NO"
+    },
+    {
+      "name": "UC3.1 - URL Input",
+      "query": "https://www.podpisnie.ru/books/maniac/",
+      "verdict": "YES"
+    },
+    {
+      "name": "UC_Edge - Just Title",
+      "query": "Ulysses",
+      "verdict": "YES"
+    },
+    {
+      "name": "UC_Edge - Generic Search",
+      "query": "Python Programming",
+      "verdict": "YES"
+    },
+    {
+      "name": "UC_Russian - Russian Book",
+      "query": "\u0412\u043e\u0439\u043d\u0430 \u0438 \u043c\u0438\u0440 \u0422\u043e\u043b\u0441\u0442\u043e\u0439",
+      "verdict": "YES"
+    }
+  ]
+}
