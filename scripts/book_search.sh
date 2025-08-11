@@ -331,9 +331,9 @@ search_book() {
     local original_input="$2"
     local extracted_query="$3"
     
-    # Use the simple book search service with filtering and format parameters
+    # Use the book search engine with filtering and format parameters
     local result
-    result=$(FORMAT="$FORMAT" MIN_CONFIDENCE="$MIN_CONFIDENCE" MIN_QUALITY="$MIN_QUALITY" python3 "$PROJECT_ROOT/simple_book_search.py" "$extracted_query" 2>/dev/null || echo "")
+    result=$(FORMAT="$FORMAT" MIN_CONFIDENCE="$MIN_CONFIDENCE" MIN_QUALITY="$MIN_QUALITY" python3 "$SCRIPT_DIR/book_search_engine.py" "$extracted_query" 2>/dev/null || echo "")
     
     if [[ -n "$result" ]]; then
         echo "$result"
