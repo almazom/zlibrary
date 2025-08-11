@@ -25,7 +25,7 @@ run_test() {
     echo "   Query: '$query'"
     
     # Run search
-    local result=$(./scripts/book_search.sh "$query" 2>/dev/null || echo '{"status":"error"}')
+    local result=$(../scripts/book_search.sh "$query" 2>/dev/null || echo '{"status":"error"}')
     
     # Check if found matches expectation
     local found=$(echo "$result" | jq -r '.result.found' 2>/dev/null || echo "error")
@@ -88,6 +88,17 @@ run_test "Author Only" "Stephen King" "true" "true"
 echo -e "\n${YELLOW}SCENARIO 4: Edge Cases${NC}"
 run_test "Special Characters" "C++ Programming" "true" "true"
 run_test "Numbers in Title" "1984" "true" "true"
+
+# Scenario 5: Russian books
+echo -e "\n${YELLOW}SCENARIO 5: Russian Books${NC}"
+run_test "Russian Classic" "Война и мир Толстой" "true" "true"
+run_test "Russian Modern" "Мастер и Маргарита Булгаков" "true" "true"
+run_test "Russian Crime" "Преступление и наказание Достоевский" "true" "true"
+run_test "Russian Poetry" "Евгений Онегин Пушкин" "true" "true"
+
+# Scenario 6: URL inputs
+echo -e "\n${YELLOW}SCENARIO 6: URL Input Support${NC}"
+run_test "Podpisnie URL" "https://www.podpisnie.ru/books/maniac/" "true" "true"
 
 # Summary
 echo -e "\n========================================="

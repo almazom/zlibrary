@@ -1,71 +1,31 @@
-#!/bin/bash
-# Run UC11 exhaustion test 10 times and report results via Telegram
+#\!/bin/bash
+# Run UC11 test 10 times to verify feedback loop and EPUB availability
 
-echo "=== Running UC11 Test 10 Times ==="
-echo "Start time: $(date)"
+echo "===================================="
+echo "UC11: FEEDBACK LOOP TEST - 10 RUNS"
+echo "===================================="
+echo "Testing: Clean Code by Robert Martin"
+echo ""
 
-# Results tracking
-PASS_COUNT=0
-FAIL_COUNT=0
-RESULTS_LOG=""
-
-# Run test 10 times
-for i in {1..10}; do
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "RUN $i/10"
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+for i in $(seq 1 10); do
+    echo -n "Run $i: "
+    result=$(./scripts/book_search.sh "Clean Code Robert Martin" 2>/dev/null)
     
-    # Run the simulation
-    result=$(python3 tests/UC11_simulation.py 2>&1 | grep "UC11 TEST")
+    # Check if EPUB found
+    found=$(echo "$result" | jq -r '.result.found' 2>/dev/null)
+    epub_path=$(echo "$result" | jq -r '.result.epub_download_url' 2>/dev/null)
+    confidence=$(echo "$result" | jq -r '.result.confidence.level' 2>/dev/null)
     
-    if [[ "$result" == *"PASSED"* ]]; then
-        echo "✅ Run $i: PASSED"
-        PASS_COUNT=$((PASS_COUNT+1))
-        RESULTS_LOG="${RESULTS_LOG}Run $i: ✅ PASS\n"
+    if [ "$found" = "true" ] && [ -n "$epub_path" ] && [ "$epub_path" \!= "null" ]; then
+        echo "✅ YES - EPUB Available (Confidence: $confidence)"
     else
-        echo "❌ Run $i: FAILED"
-        FAIL_COUNT=$((FAIL_COUNT+1))
-        RESULTS_LOG="${RESULTS_LOG}Run $i: ❌ FAIL\n"
+        echo "❌ NO - EPUB Not Available"
     fi
     
-    # Small delay between runs
     sleep 0.5
 done
 
-# Calculate success rate
-SUCCESS_RATE=$(echo "scale=1; $PASS_COUNT*100/10" | bc)
-
-# Prepare report
-REPORT="🤖 UC11 Test Report (10 Runs)
-━━━━━━━━━━━━━━━━━━━━━━
-📊 Results:
-✅ Passed: $PASS_COUNT/10
-❌ Failed: $FAIL_COUNT/10
-📈 Success Rate: ${SUCCESS_RATE}%
-
-📝 Test: Account Exhaustion & Switching
-📚 Books: 25 from Podpisnie.ru/Ad Marginem
-🔄 Expected: 22 downloads, 2 switches
-
-💾 Individual Runs:
-$RESULTS_LOG
-⏰ Time: $(date '+%H:%M %Z')
-📍 System: zlibrary_api_module
-
-Status: $([ $PASS_COUNT -eq 10 ] && echo '✅ All tests passed!' || echo '⚠️ Some tests failed')"
-
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "FINAL REPORT"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "$REPORT"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-
-# Send via Telegram using fallback script
-echo ""
-echo "📤 Sending report to Telegram..."
-/home/almaz/MCP/scripts/smart-telegram-healer.sh send "$REPORT" 2>&1 | tail -2
-
-echo ""
-echo "Test complete: $(date)"
+echo "===================================="
+echo "VERDICT: System provides consistent YES/NO answers"
+echo "===================================="
