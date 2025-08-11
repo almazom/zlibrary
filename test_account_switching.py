@@ -1,261 +1,172 @@
 #!/usr/bin/env python3
 """
-Test Account Switching When Limits Exhausted
-Tests automatic rotation between Z-Library accounts when download limits are reached
+Test Account Switching Strategy on Exhaustion
+Tests with 20 books from Podpisnie.ru
 """
 
 import asyncio
-import os
+import json
+from datetime import datetime
 import sys
 from pathlib import Path
-from dotenv import load_dotenv
 
-# Load environment
-load_dotenv()
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from zlibrary import AsyncZlib, Extension, Language
+from zlibrary import AsyncZlib
 
-class AccountSwitchTester:
-    """Test automatic account switching functionality"""
+# Books from Podpisnie.ru
+BOOKS_TO_TEST = [
+    "Семейный лексикон",
+    "Ирландские сказки и легенды", 
+    "Из ничего искусство создавать искусство",
+    "Развод",
+    "Курс Разговоры со студентами",
+    "Семь лет в Крестах",
+    "Кадавры",
+    "Полторы комнаты",
+    "Невыносимая легкость бытия Кундера",
+    "The Book Как создать цивилизацию заново",
+    "Мир образов Образы мира",
+    "Тайна Моря",
+    "История одного немца",
+    "Лисьи Броды",
+    "Дочь самурая",
+    "Другой дом",
+    "Истории книжных магазинов",
+    "Роза",
+    "У Плыли-Две-Птицы",
+    "Любовь в эпоху ненависти"
+]
+
+async def test_account_switching():
+    """Test account switching on exhaustion"""
     
-    def __init__(self):
-        # Load accounts from .env
-        self.accounts = [
-            {"email": os.getenv("ZLOGIN"), "password": os.getenv("ZPASSW"), "name": "Account-1"},
-            {"email": os.getenv("ZLOGIN1"), "password": os.getenv("ZPASSW1"), "name": "Account-2"}, 
-            {"email": os.getenv("ZLOGIN2"), "password": os.getenv("ZPASSW2"), "name": "Account-3"},
-        ]
-        
-        # Filter valid accounts
-        self.accounts = [acc for acc in self.accounts if acc["email"] and acc["password"]]
-        print(f"🎯 Found {len(self.accounts)} accounts to test")
-        
-        self.clients = {}
-        self.limits = {}
+    accounts = [
+        ('almazomam@gmail.com', 'tataronrails78'),
+        ('almazomam2@gmail.com', 'tataronrails78'),
+        ('almazomam3@gmail.com', 'tataronrails78')
+    ]
     
-    async def initialize_accounts(self):
-        """Login and check limits for all accounts"""
-        print("\n🔑 Initializing accounts...")
+    print("=== ACCOUNT SWITCHING TEST ===")
+    print(f"Testing {len(BOOKS_TO_TEST)} books from Podpisnie.ru")
+    print(f"Accounts available: {len(accounts)}")
+    print("-" * 50)
+    
+    results = {
+        'books_tested': 0,
+        'books_found': 0,
+        'account_switches': 0,
+        'current_account': 0,
+        'account_usage': {0: 0, 1: 0, 2: 0},
+        'exhausted_accounts': []
+    }
+    
+    for book_num, book_query in enumerate(BOOKS_TO_TEST, 1):
+        print(f"\n[{book_num}/{len(BOOKS_TO_TEST)}] Searching: {book_query}")
         
-        working_accounts = 0
-        for acc in self.accounts:
+        book_found = False
+        
+        # Try each account until one works
+        for acc_index, (email, password) in enumerate(accounts):
+            if acc_index in results['exhausted_accounts']:
+                print(f"  ⏭️  Account {acc_index+1} already exhausted, skipping")
+                continue
+                
             try:
+                print(f"  🔄 Trying account {acc_index+1}: {email.split('@')[0]}@...")
+                
                 client = AsyncZlib()
-                profile = await client.login(acc["email"], acc["password"])
+                profile = await client.login(email, password)
                 limits = await profile.get_limits()
                 
-                self.clients[acc["name"]] = {
-                    "client": client,
-                    "profile": profile,
-                    "email": acc["email"]
-                }
+                remaining = limits.get('daily_remaining', 0)
+                print(f"     Downloads remaining: {remaining}")
                 
-                self.limits[acc["name"]] = {
-                    "remaining": limits["daily_remaining"],
-                    "limit": limits["daily_allowed"],
-                    "used": limits["daily_amount"],
-                    "reset": limits["daily_reset"],
-                    "original_remaining": limits["daily_remaining"]
-                }
-                
-                working_accounts += 1
-                print(f"✅ {acc['name']} ({acc['email']}): {limits['daily_remaining']}/{limits['daily_allowed']} downloads")
-                
-            except Exception as e:
-                print(f"❌ {acc['name']} ({acc['email']}): {e}")
-        
-        total_downloads = sum(lim["remaining"] for lim in self.limits.values())
-        print(f"\n📊 Total available downloads: {total_downloads}")
-        return working_accounts > 0
-    
-    async def get_available_account(self):
-        """Get next account with available downloads (mimics account switching logic)"""
-        for name, limits in self.limits.items():
-            if limits["remaining"] > 0:
-                return name, self.clients[name]
-        return None, None
-    
-    async def test_sequential_downloads(self, max_downloads=15):
-        """Test downloading books sequentially with automatic account switching"""
-        print(f"\n🔍 Searching for books...")
-        
-        # Use first available account for search
-        first_account_name, first_account = await self.get_available_account()
-        if not first_account:
-            print("❌ No accounts available!")
-            return []
-        
-        # Search for books
-        try:
-            results = await first_account["client"].search(
-                q="Python programming",
-                extensions=[Extension.EPUB, Extension.PDF],
-                lang=[Language.ENGLISH],
-                count=max_downloads
-            )
-            
-            await results.init()
-            books = results.result
-            print(f"📚 Found {len(books)} books to test with")
-            
-        except Exception as e:
-            print(f"❌ Search failed: {e}")
-            return []
-        
-        # Test downloading with account switching
-        print(f"\n⬇️ Testing account switching with {len(books)} downloads...")
-        print("="*80)
-        
-        results = []
-        for i, book in enumerate(books, 1):
-            # Get available account (this simulates account switching)
-            account_name, account_info = await self.get_available_account()
-            
-            if not account_info:
-                print(f"🛑 STOP: All accounts exhausted at download {i}")
-                remaining_books = len(books) - i + 1
-                print(f"   Could not download {remaining_books} remaining books")
-                break
-            
-            current_remaining = self.limits[account_name]["remaining"]
-            
-            try:
-                # Attempt download
-                print(f"{i:2d}. Using {account_name} ({current_remaining} left) -> ", end="")
-                
-                details = await book.fetch()
-                download_url = details.get('download_url', '')
-                
-                if download_url and download_url != "No download available":
-                    # Simulate successful download - decrease remaining count
-                    self.limits[account_name]["remaining"] -= 1
-                    self.limits[account_name]["used"] += 1
+                if remaining > 0:
+                    # Account switch if different from current
+                    if acc_index != results['current_account']:
+                        results['account_switches'] += 1
+                        print(f"  ⚡ ACCOUNT SWITCH: #{results['current_account']+1} → #{acc_index+1}")
+                        results['current_account'] = acc_index
                     
-                    new_remaining = self.limits[account_name]["remaining"]
-                    book_name = details['name'][:50]
+                    # Search for book
+                    search_results = await client.search(
+                        q=book_query,
+                        extensions=['epub'],
+                        count=1
+                    )
                     
-                    print(f"✅ '{book_name}' ({new_remaining} left)")
+                    await search_results.init()
                     
-                    result = {
-                        "index": i,
-                        "book": book_name,
-                        "account": account_name,
-                        "status": "success",
-                        "remaining_after": new_remaining
-                    }
-                    
-                    # Check if account is now exhausted
-                    if new_remaining == 0:
-                        print(f"   ⚠️  {account_name} is now EXHAUSTED - will switch to next account")
-                    
+                    if search_results.result:
+                        book = search_results.result[0]
+                        book_info = await book.fetch()
+                        title = book_info.get('name', 'Unknown')
+                        
+                        print(f"  ✅ FOUND: {title[:50]}...")
+                        results['books_found'] += 1
+                        results['account_usage'][acc_index] += 1
+                        book_found = True
+                        
+                        # Check if account now exhausted
+                        new_limits = await profile.get_limits()
+                        if new_limits.get('daily_remaining', 0) == 0:
+                            print(f"  ⚠️  Account {acc_index+1} now EXHAUSTED")
+                            results['exhausted_accounts'].append(acc_index)
+                        
+                        break
+                    else:
+                        print(f"  ❌ Book not found in Z-Library")
+                        break
+                        
                 else:
-                    print(f"⚠️ Book unavailable")
-                    result = {
-                        "index": i,
-                        "book": book.name if hasattr(book, 'name') else 'Unknown',
-                        "account": account_name,
-                        "status": "unavailable"
-                    }
-                
-                results.append(result)
-                
+                    print(f"  ❌ Account exhausted (0 downloads)")
+                    if acc_index not in results['exhausted_accounts']:
+                        results['exhausted_accounts'].append(acc_index)
+                    continue
+                    
             except Exception as e:
-                print(f"❌ Failed: {e}")
-                results.append({
-                    "index": i,
-                    "book": book.name if hasattr(book, 'name') else 'Unknown',
-                    "account": account_name,
-                    "status": "failed",
-                    "error": str(e)
-                })
+                print(f"  ❌ Account error: {str(e)[:50]}")
+                if acc_index not in results['exhausted_accounts']:
+                    results['exhausted_accounts'].append(acc_index)
+                continue
             
-            # Small delay between downloads
-            await asyncio.sleep(1)
+            finally:
+                try:
+                    await client.logout()
+                except:
+                    pass
         
-        return results
-    
-    def print_switching_summary(self, results):
-        """Print summary of account switching behavior"""
-        print("\n" + "="*80)
-        print("ACCOUNT SWITCHING SUMMARY")
-        print("="*80)
+        results['books_tested'] += 1
         
-        # Account usage summary
-        accounts_used = {}
-        successful_downloads = 0
+        if not book_found:
+            print(f"  ⛔ Could not find book with any account")
         
-        for result in results:
-            if result["status"] == "success":
-                account = result["account"]
-                if account not in accounts_used:
-                    accounts_used[account] = 0
-                accounts_used[account] += 1
-                successful_downloads += 1
-        
-        print(f"✅ Total successful downloads: {successful_downloads}")
-        print(f"🔄 Accounts used: {len(accounts_used)}")
-        
-        for account, count in accounts_used.items():
-            original = self.limits[account]["original_remaining"]
-            current = self.limits[account]["remaining"] 
-            print(f"   {account}: {count} downloads ({original}→{current} remaining)")
-        
-        # Show current status
-        print(f"\n💾 Current account status:")
-        for name, limits in self.limits.items():
-            status = "EXHAUSTED" if limits["remaining"] == 0 else "AVAILABLE"
-            print(f"   {name}: {limits['remaining']}/{limits['limit']} ({status})")
-        
-        # Test if switching logic worked
-        total_remaining = sum(lim["remaining"] for lim in self.limits.values())
-        if successful_downloads > 0 and total_remaining > 0:
-            print(f"\n🎯 SWITCHING TEST: ✅ SUCCESS")
-            print(f"   Downloaded {successful_downloads} books using multiple accounts")
-            print(f"   {total_remaining} downloads still available across accounts")
-        elif total_remaining == 0:
-            print(f"\n🎯 SWITCHING TEST: ✅ ALL ACCOUNTS EXHAUSTED")
-            print(f"   Downloaded {successful_downloads} books before running out")
-        else:
-            print(f"\n🎯 SWITCHING TEST: ⚠️ NO DOWNLOADS ATTEMPTED")
+        # Stop if all accounts exhausted
+        if len(results['exhausted_accounts']) == len(accounts):
+            print("\n🛑 ALL ACCOUNTS EXHAUSTED - Stopping test")
+            break
     
-    async def cleanup(self):
-        """Cleanup all connections"""
-        for account_info in self.clients.values():
-            try:
-                await account_info["client"].logout()
-            except:
-                pass
-
-async def main():
-    """Run account switching test"""
-    print("🔄 Z-Library Account Switching Test")
-    print("="*50)
+    # Print final report
+    print("\n" + "=" * 50)
+    print("FINAL ACCOUNT SWITCHING REPORT")
+    print("=" * 50)
+    print(f"Books tested: {results['books_tested']}/{len(BOOKS_TO_TEST)}")
+    print(f"Books found: {results['books_found']}")
+    print(f"Account switches: {results['account_switches']}")
+    print(f"Exhausted accounts: {len(results['exhausted_accounts'])}/{len(accounts)}")
+    print("\nAccount usage breakdown:")
+    for acc_id, usage in results['account_usage'].items():
+        status = "EXHAUSTED" if acc_id in results['exhausted_accounts'] else "ACTIVE"
+        print(f"  Account {acc_id+1}: {usage} downloads [{status}]")
     
-    tester = AccountSwitchTester()
+    # Success criteria
+    print("\n✅ SUCCESS CRITERIA:")
+    print(f"  1. Account switching works: {'YES' if results['account_switches'] > 0 else 'NO'}")
+    print(f"  2. Fallback on exhaustion: {'YES' if results['account_switches'] > 0 else 'UNTESTED'}")
+    print(f"  3. Multiple accounts used: {'YES' if sum(1 for u in results['account_usage'].values() if u > 0) > 1 else 'NO'}")
     
-    # Initialize accounts
-    if not await tester.initialize_accounts():
-        print("❌ No working accounts available!")
-        return
-    
-    # Test sequential downloads with switching
-    results = await tester.test_sequential_downloads(max_downloads=25)
-    
-    # Show summary
-    tester.print_switching_summary(results)
-    
-    # Cleanup
-    await tester.cleanup()
-    
-    print(f"\n🎯 Account switching test complete!")
+    return results
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        print("\n👋 Test interrupted")
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
+    asyncio.run(test_account_switching())
