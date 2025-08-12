@@ -93,8 +93,21 @@ celerybeat-schedule
 # SageMath parsed files
 *.sage.py
 
+# SECURITY CRITICAL - Sensitive files
+*string_session*.txt
+*session*.txt
+stable_string_session.txt
+telegram_bot/stable_string_session.txt
+accounts_config.json
+*token*
+*secret*
+*key*
+test_results/
+account_test_results_*.json
+
 # Environments
 .env
+.env.*
 .venv
 env/
 venv/

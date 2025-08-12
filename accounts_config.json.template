@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "updated": "YYYY-MM-DDTHH:mm:ss.ssssss",
+  "accounts": [
+    {
+      "email": "your-email-1@example.com",
+      "password": "your-secure-password",
+      "daily_limit": 10,
+      "daily_used": 0,
+      "daily_remaining": 10,
+      "reset_time": null,
+      "last_used": null,
+      "is_active": true,
+      "login_failures": 0,
+      "notes": "Account description"
+    },
+    {
+      "email": "your-email-2@example.com", 
+      "password": "your-secure-password",
+      "daily_limit": 10,
+      "daily_used": 0,
+      "daily_remaining": 10,
+      "reset_time": null,
+      "last_used": null,
+      "is_active": true,
+      "login_failures": 0,
+      "notes": "Account description"
+    }
+  ]
+}
