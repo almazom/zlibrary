@@ -105,9 +105,9 @@ accounts_config.json
 test_results/
 account_test_results_*.json
 
-# Environments
+# Environments (allow templates)
 .env
-.env.*
+!.env.template
 .venv
 env/
 venv/
