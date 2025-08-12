@@ -33,7 +33,7 @@ generate_random_book() {
     local category="$1"
     local language="$2"
     
-    log_ai "🤖 Generating random $category book in $language using Claude AI..."
+    log_ai "🤖 Generating random $category book in $language using Claude AI..." >&2
     
     local prompt="Generate a single real $category book title and author in $language language. 
 Requirements:
@@ -41,7 +41,7 @@ Requirements:
 - Include both title and author name
 - For non-English: provide romanized/transliterated version in parentheses if needed
 - Format: 'Title by Author' or 'Title Author' (simple format)
-- Examples: 'Clean Code Robert Martin', 'Война и мир Толстой', 'Les Misérables Hugo'
+- Examples: 'Clean Code Robert Martin', 'Война и мир Толстoy', 'Les Misérables Hugo'
 - Choose randomly from well-known $category books
 - Return ONLY the book query in one line, nothing else"
 
@@ -56,14 +56,14 @@ Requirements:
     
     if [[ -n "$claude_cmd" ]] && claude_result=$($claude_cmd -p "$prompt" 2>/dev/null | head -1 | tr -d '\n' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'); then
         if [[ -n "$claude_result" && ${#claude_result} -gt 5 && ${#claude_result} -lt 80 ]]; then
-            log_success "🎯 Generated: '$claude_result'"
+            log_success "🎯 Generated: '$claude_result'" >&2
             echo "$claude_result"
             return 0
         else
-            log_warn "⚠️ Claude result too short/long: '$claude_result'"
+            log_warn "⚠️ Claude result too short/long: '$claude_result'" >&2
         fi
     else
-        log_warn "⚠️ Claude generation failed"
+        log_warn "⚠️ Claude generation failed" >&2
     fi
     
     # Fallback to predefined books if Claude fails
@@ -88,7 +88,7 @@ Requirements:
     
     local random_index=$((RANDOM % ${#fallback_books[@]}))
     local fallback="${fallback_books[$random_index]}"
-    log_warn "🔄 Using fallback: '$fallback'"
+    log_warn "🔄 Using fallback: '$fallback'" >&2
     echo "$fallback"
 }
 
