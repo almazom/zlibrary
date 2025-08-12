@@ -1,0 +1,33 @@
+# Test URLs for Interactive Testing - Russian Focus
+# Generated: 2025-08-12
+
+## Russian Bookstores (10 URLs)
+
+# Podpisnie.ru - Russian book recommendations
+https://www.podpisnie.ru/books/maniac/
+https://www.podpisnie.ru/books/misticheskiy-mir-novalisa/
+https://www.podpisnie.ru/books/eto-nesluchayno-yaponskaya/
+
+# Ozon.ru - Popular Russian online bookstore
+https://www.ozon.ru/product/voyna-i-mir-tolstoy-31831940/
+https://www.ozon.ru/product/prestuplenie-i-nakazanie-dostoevskiy-135607141/
+https://www.ozon.ru/product/master-i-margarita-bulgakov-135925102/
+
+# Alpinabook.ru - Business and self-help
+https://alpinabook.ru/catalog/book-atomnye-privychki/
+https://alpinabook.ru/catalog/book-chistyy-kod-sozdanie-analiz-i-refaktoring/
+
+# Vse-svobodny.com - Philosophy and intellectual books
+https://vse-svobodny.com/book/fenomenologiya-vospriyatiya-merlo-ponti
+https://vse-svobodny.com/book/bytie-i-nichto-sartr
+
+## International Sources (5 URLs)
+
+# Goodreads - Popular book reviews
+https://www.goodreads.com/book/show/3735293-clean-code
+https://www.goodreads.com/book/show/11084145-steve-jobs
+
+# Amazon - Technical and popular books
+https://www.amazon.com/Clean-Code-Handbook-Software-Craftsmanship/dp/0132350882
+https://www.amazon.com/Pragmatic-Programmer-journey-mastery-Anniversary/dp/0135957052
+https://www.amazon.com/Design-Patterns-Elements-Reusable-Object-Oriented/dp/0201633612
