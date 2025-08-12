@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
-SCRIPT_PATH = os.getenv('SCRIPT_PATH', '/home/almaz/microservices/zlibrary_api_module/scripts/book_search.sh')
+SCRIPT_PATH = os.getenv('SCRIPT_PATH', '/home/almaz/microservices/zlibrary_api_module/scripts/book_search_engine.py')
 
 logger.info(f"🔧 Bot configured - Token: {TOKEN[:20]}..., Script: {SCRIPT_PATH}")
 
@@ -48,7 +48,7 @@ async def search_book(query: str) -> dict:
     logger.info(f"🔍 Searching for book: '{query}'")
     
     # Build command
-    cmd = [SCRIPT_PATH, "--download", query]
+    cmd = ["bash", SCRIPT_PATH, "--download", query]
     logger.debug(f"Running command: {' '.join(cmd)}")
     
     # Execute subprocess

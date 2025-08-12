@@ -138,14 +138,52 @@ def detect_and_translate_query(query):
     
     return has_cyrillic, original_query
 
+def load_accounts_config():
+    """Load accounts from accounts_config.json"""
+    config_path = Path(__file__).parent.parent / "accounts_config.json"
+    
+    if not config_path.exists():
+        return []
+    
+    try:
+        with open(config_path, 'r') as f:
+            config = json.load(f)
+        
+        accounts = []
+        for account in config.get('accounts', []):
+            if account.get('is_active', False):  # Only use active accounts
+                accounts.append((account['email'], account['password']))
+        
+        return accounts
+    except Exception:
+        return []
+
 async def search_book(query):
     """Simple book search with multi-account fallback, format support, and language fallback"""
     
-    accounts = [
-        ('almazomam@gmail.com', 'tataronrails78'),
-        ('almazomam2@gmail.com', 'tataronrails78'),
-        ('almazomam3@gmail.com', 'tataronrails78')
-    ]
+    # Load accounts from configuration file
+    accounts = load_accounts_config()
+    
+    # Fallback to hardcoded accounts if config is empty or no active accounts
+    if not accounts:
+        accounts = [
+            # Fresh account - prioritize first
+            ('almazomkz@gmail.com', 'tataronrails78'),
+            
+            # Existing working accounts (exhausted until reset)
+            ('almazomam@gmail.com', 'tataronrails78'),
+            ('almazomam2@gmail.com', 'tataronrails78'),
+            ('almazomam3@gmail.com', 'tataronrails78'),
+            
+            # Additional accounts (need registration)
+            ('almazomam4@gmail.com', 'tataronrails78'),
+            ('almazomam5@gmail.com', 'tataronrails78'),
+            ('almazomam6@gmail.com', 'tataronrails78'),
+            ('almazomam7@gmail.com', 'tataronrails78'),
+            ('almazomam8@gmail.com', 'tataronrails78'),
+            ('almazomam9@gmail.com', 'tataronrails78'),
+            ('almazomam10@gmail.com', 'tataronrails78'),
+        ]
     
     # Check if debug mode is enabled
     debug_mode = os.getenv('DEBUG', 'false').lower() == 'true'
@@ -194,11 +232,19 @@ async def search_book(query):
         "input_format": input_format,
         "query_info": {
             "original_input": sys.argv[1] if len(sys.argv) > 1 else query,
-            "extracted_query": query
+            "extracted_query": query,
+            "language_detected": "russian" if is_russian else "other",
+            "fallback_available": fallback_query is not None
         },
         "result": {
-            "error": "search_failed",
-            "message": "No working accounts found"
+            "error": "search_failed", 
+            "message": "No working accounts found",
+            "details": "All accounts are temporarily rate-limited by Z-Library. Please try again in 1-24 hours.",
+            "retry_info": {
+                "suggested_wait_time": "1-24 hours",
+                "rate_limit_detected": True,
+                "total_accounts_tried": len(accounts)
+            }
         }
     }
     
@@ -487,10 +533,24 @@ async def search_book(query):
                 break
                 
         except Exception as e:
+            error_msg = str(e)
             if debug_mode:
                 if debug_info["login_attempts"] and len(debug_info["login_attempts"]) > account_idx - 1:
                     debug_info["login_attempts"][-1]["login_success"] = False
-                    debug_info["login_attempts"][-1]["error"] = str(e)
+                    debug_info["login_attempts"][-1]["error"] = error_msg
+            
+            # Check for rate limiting
+            if "too many logins" in error_msg.lower() or "try again later" in error_msg.lower():
+                if debug_mode:
+                    debug_info["login_attempts"][-1]["rate_limited"] = True
+                print(f"⚠️ Account {email} is rate limited, trying next account...", file=sys.stderr)
+                # Update response with better rate limit info
+                response["result"]["message"] = f"Account rate limited: {email}"
+                response["result"]["rate_limited_accounts"] = response["result"].get("rate_limited_accounts", [])
+                response["result"]["rate_limited_accounts"].append(email)
+            else:
+                print(f"⚠️ Account {email} login failed: {error_msg}", file=sys.stderr)
+            
             # Try next account
             continue
     

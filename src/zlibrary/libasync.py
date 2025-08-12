@@ -115,6 +115,17 @@ class AsyncZlib:
             self.login_domain, data, proxy_list=self.proxy_list
         )
         resp = json.loads(resp)
+        logger.debug(f"Raw login response: {resp}")
+        
+        # Check for errors first (rate limiting, etc.)
+        if 'errors' in resp and resp['errors']:
+            error_msgs = [err.get('message', 'Unknown error') for err in resp['errors']]
+            raise LoginFailed(f"Login failed: {'; '.join(error_msgs)}")
+        
+        # Check if response field exists
+        if 'response' not in resp or resp['response'] is None:
+            raise LoginFailed(f"Invalid login response: {json.dumps(resp, indent=4)}")
+            
         resp = resp['response']
         logger.debug(f"Login response: {resp}")
         if resp.get('validationError'):

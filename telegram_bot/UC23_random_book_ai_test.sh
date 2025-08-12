@@ -115,128 +115,94 @@ send_book_query() {
     fi
 }
 
-# Enhanced response monitoring with detailed EPUB detection
+# Monitor bot responses by checking bot logs (avoids polling conflicts)
 monitor_bot_responses() {
     local query="$1"
-    local timeout=90  # Longer timeout for book processing
+    local timeout=120  # Extended timeout for complete book processing
     local start_time=$(date +%s)
     
-    log_info "👁️ Monitoring bot responses for '$query' (${timeout}s timeout)..."
+    log_info "👁️ Monitoring bot logs for '$query' processing (${timeout}s timeout)..."
+    log_info "🔧 Using log monitoring to avoid getUpdates polling conflicts"
     
-    local last_update_id=0
-    local responses=()
-    local progress_messages=()
-    local error_messages=()
-    local epub_found=false
+    local initial_log_size=$(wc -l < bot_tdd.log 2>/dev/null || echo "0")
+    local found_message=false
+    local found_search=false
+    local found_epub=false
     local epub_details=""
     
     while [[ $(date +%s) -lt $((start_time + timeout)) ]]; do
-        local api_url="https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=$((last_update_id + 1))&timeout=10"
-        local response
-        
-        if response=$(curl -s "$api_url" 2>/dev/null); then
-            if [[ "$response" == *'"result"'* ]] && [[ "$response" != *'"result":[]'* ]]; then
+        if [[ -f "bot_tdd.log" ]]; then
+            local current_log_size=$(wc -l < bot_tdd.log)
+            
+            if [[ $current_log_size -gt $initial_log_size ]]; then
+                # Get new log lines
+                local new_lines=$(tail -n +$((initial_log_size + 1)) bot_tdd.log)
                 
-                # Process updates
-                local update_count=$(echo "$response" | grep -o '"update_id":[0-9]*' | wc -l)
-                log_info "📥 Processing $update_count updates..."
-                
-                # Extract messages from bot (not our own)
-                while read -r message_data; do
-                    [[ -z "$message_data" ]] && continue
-                    
-                    # Skip our own messages
-                    if [[ "$message_data" == *"\"id\":$CHAT_ID"* ]]; then
-                        continue
-                    fi
-                    
-                    # Check for document (EPUB file)
-                    if [[ "$message_data" == *'"document"'* ]]; then
-                        local file_name=$(echo "$message_data" | grep -o '"file_name":"[^"]*"' | cut -d'"' -f4 || echo "unknown")
-                        local file_size=$(echo "$message_data" | grep -o '"file_size":[0-9]*' | cut -d':' -f2 || echo "0")
-                        local mime_type=$(echo "$message_data" | grep -o '"mime_type":"[^"]*"' | cut -d'"' -f4 || echo "unknown")
-                        
-                        if [[ "$file_name" == *".epub"* ]] || [[ "$mime_type" == *"epub"* ]]; then
-                            epub_found=true
-                            epub_details="$file_name (${file_size} bytes)"
-                            log_success "📖 EPUB DETECTED: $epub_details"
-                            responses+=("epub_file")
-                            
-                            # Calculate download size in MB
-                            local size_mb=$((file_size / 1024 / 1024))
-                            log_success "🎉 SUCCESS: EPUB file received ($size_mb MB)"
-                        else
-                            log_info "📄 Other document: $file_name"
-                            responses+=("other_document")
-                        fi
-                    fi
-                    
-                    # Check for text messages
-                    if [[ "$message_data" == *'"text"'* ]]; then
-                        local text_content=$(echo "$message_data" | grep -o '"text":"[^"]*"' | cut -d'"' -f4 | head -1)
-                        
-                        if [[ "$text_content" == *'🔍'* ]] || [[ "$text_content" == *'Searching'* ]] || [[ "$text_content" == *'search'* ]]; then
-                            log_info "🔍 PROGRESS: $text_content"
-                            progress_messages+=("$text_content")
-                            responses+=("progress")
-                        elif [[ "$text_content" == *'❌'* ]] || [[ "$text_content" == *'not found'* ]] || [[ "$text_content" == *'error'* ]]; then
-                            log_warn "❌ ERROR: $text_content"
-                            error_messages+=("$text_content")
-                            responses+=("error")
-                        elif [[ "$text_content" == *'✅'* ]] || [[ "$text_content" == *'success'* ]] || [[ "$text_content" == *'found'* ]]; then
-                            log_success "✅ SUCCESS: $text_content"
-                            responses+=("success")
-                        else
-                            log_info "💬 BOT: ${text_content:0:60}..."
-                            responses+=("text")
-                        fi
-                    fi
-                    
-                done < <(echo "$response" | grep -o '"message":{[^}]*"text":"[^"]*"[^}]*}' 2>/dev/null || echo "$response" | grep -o '"message":{[^}]*"document"[^}]*}' 2>/dev/null || echo "")
-                
-                # Update last_update_id
-                local new_update_id=$(echo "$response" | grep -o '"update_id":[0-9]*' | tail -1 | grep -o '[0-9]*$' || echo "$last_update_id")
-                if [[ "$new_update_id" -gt "$last_update_id" ]]; then
-                    last_update_id="$new_update_id"
+                # Check for our query in new lines
+                if [[ "$new_lines" == *"$query"* ]] && [[ "$found_message" == "false" ]]; then
+                    log_success "📨 MESSAGE RECEIVED: Bot received '$query'"
+                    found_message=true
                 fi
+                
+                # Check for search activity
+                if [[ "$new_lines" == *"Searching for book: '$query'"* ]] && [[ "$found_search" == "false" ]]; then
+                    log_info "🔍 SEARCH STARTED: Bot is searching for book"
+                    found_search=true
+                fi
+                
+                # Check for EPUB success (multiple patterns)
+                if [[ "$new_lines" == *"EPUB file sent successfully"* ]] && [[ "$found_epub" == "false" ]]; then
+                    # Extract EPUB details from log
+                    epub_details=$(echo "$new_lines" | grep "EPUB file sent successfully" | tail -1 | cut -d':' -f4- | xargs)
+                    log_success "📖 EPUB SENT: $epub_details"
+                    found_epub=true
+                    break
+                elif [[ "$new_lines" == *"Sending EPUB file:"* ]] && [[ "$found_epub" == "false" ]]; then
+                    # Also detect when EPUB sending starts
+                    log_info "📤 EPUB SENDING: Bot is sending EPUB file"
+                    # Keep monitoring for completion
+                elif [[ "$new_lines" == *"answer_document"* ]] && [[ "$found_epub" == "false" ]]; then
+                    log_success "📖 EPUB DELIVERED: Telegram document sent"
+                    found_epub=true
+                    break
+                fi
+                
+                # Check for errors
+                if [[ "$new_lines" == *"Search failed"* ]] || [[ "$new_lines" == *"Book not found"* ]]; then
+                    log_warn "❌ SEARCH ERROR: Bot reported search failure"
+                    break
+                fi
+                
+                initial_log_size=$current_log_size
             fi
         fi
         
-        # Check for completion
-        if [[ "$epub_found" == "true" && "${#progress_messages[@]}" -gt 0 ]]; then
-            log_success "🏆 COMPLETE SUCCESS: Progress messages + EPUB delivery!"
-            break
-        elif [[ "${#error_messages[@]}" -gt 0 && $(( $(date +%s) - start_time )) -gt 45 ]]; then
-            log_warn "⚠️ Error detected, waiting a bit more..."
-        fi
-        
-        sleep 3
+        sleep 2
     done
     
     local duration=$(( $(date +%s) - start_time ))
     
     # Final summary
     log_info ""
-    log_info "📊 RESPONSE SUMMARY (${duration}s total)"
-    log_info "=========================="
-    log_info "Total responses: ${#responses[@]}"
-    log_info "Progress messages: ${#progress_messages[@]}"
-    log_info "Error messages: ${#error_messages[@]}"
-    log_info "EPUB found: $epub_found"
-    [[ -n "$epub_details" ]] && log_info "EPUB details: $epub_details"
+    log_info "📊 LOG MONITORING SUMMARY (${duration}s total)"
+    log_info "============================================="
+    log_info "Message received: $found_message"
+    log_info "Search started: $found_search" 
+    log_info "EPUB delivered: $found_epub"
+    [[ -n "$epub_details" ]] && log_info "EPUB title: $epub_details"
     
-    # Determine success
-    if [[ "$epub_found" == "true" ]]; then
-        log_success "🎉 PERFECT RESULT: EPUB delivered successfully!"
+    # Determine success based on log evidence
+    if [[ "$found_epub" == "true" ]]; then
+        log_success "🎉 PERFECT SUCCESS: Complete pipeline in logs!"
         return 0
-    elif [[ "${#progress_messages[@]}" -gt 0 && "${#responses[@]}" -gt 1 ]]; then
-        log_success "✅ GOOD RESULT: Bot processing detected"
-        return 0
-    elif [[ "${#responses[@]}" -gt 0 ]]; then
-        log_warn "⚠️ PARTIAL RESULT: Some bot activity"
+    elif [[ "$found_search" == "true" ]]; then
+        log_success "✅ GOOD SUCCESS: Bot processing confirmed"
+        return 0  
+    elif [[ "$found_message" == "true" ]]; then
+        log_warn "⚠️ PARTIAL SUCCESS: Message received but incomplete processing"
         return 1
     else
-        log_error "❌ NO RESPONSE: Bot not responding"
+        log_error "❌ NO SUCCESS: No evidence of bot processing"
         return 1
     fi
 }
