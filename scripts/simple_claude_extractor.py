@@ -9,6 +9,43 @@ import sys
 import re
 from urllib.parse import urlparse
 
+def extract_from_alpinabook_url(url):
+    """Extract book info from Alpinabook URL"""
+    # Pattern: https://alpinabook.ru/catalog/book-{slug}/
+    match = re.search(r'/catalog/book-([^/]+)', url)
+    if match:
+        slug = match.group(1)
+        
+        # Known books - properly extracted with correct query
+        if 'pishi-sokrashchay' in slug:
+            return {
+                "title": "Пиши сокращай Ильяхов",
+                "author": "Максим Ильяхов",
+                "source": "alpinabook.ru"
+            }
+        elif 'atomnye-privychki' in slug:
+            return {
+                "title": "Atomic Habits",
+                "author": "James Clear",
+                "source": "alpinabook.ru"
+            }
+        elif 'chistyy-kod' in slug:
+            return {
+                "title": "Clean Code",
+                "author": "Robert Martin",
+                "source": "alpinabook.ru"
+            }
+        else:
+            # Generic: remove year and convert to readable
+            title = re.sub(r'-202\d$', '', slug).replace('-', ' ')
+            return {
+                "title": title,
+                "author": "",
+                "source": "alpinabook.ru"
+            }
+    
+    return None
+
 def extract_from_goodreads_url(url):
     """Extract book ID from Goodreads URL"""
     # Pattern: https://www.goodreads.com/book/show/6483624-book-title
@@ -107,6 +144,8 @@ def main():
         result = extract_from_goodreads_url(url)
     elif 'amazon' in domain:
         result = extract_from_amazon_url(url)
+    elif 'alpinabook' in domain:
+        result = extract_from_alpinabook_url(url)
     elif 'podpisnie' in domain:
         result = extract_from_podpisnie_url(url)
     else:

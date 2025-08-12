@@ -124,32 +124,77 @@ extract_query_from_url() {
             # Determine domain for proper prompt selection
             local domain=$(echo "$url" | sed -E 's|https?://([^/]+).*|\1|' | sed 's/www\.//')
             
-            # TEMPORARY: Hardcoded extraction for known URLs until Claude integration
-            # This simulates what Claude WebFetch would return
-            if [[ "$url" == *"eksmo.ru/book/lunnyy-kamen"* ]]; then
-                claude_result='{
-                    "title": "Лунный камень",
-                    "author": "Милорад Павич",
-                    "isbn": "978-5-04-185167-5",
-                    "publisher": "Эксмо",
-                    "year": "2025",
-                    "language": "Russian"
-                }'
-            elif [[ "$url" == *"alpinabook.ru"*"pishi-sokrashchay"* ]]; then
-                claude_result='{
-                    "title": "Пиши сокращай",
-                    "author": "Максим Ильяхов",
-                    "language": "Russian"
-                }'
-            else
-                # For unknown URLs, signal that Claude WebFetch is needed
-                echo "CLAUDE_WEBFETCH_REQUIRED: This URL requires real Claude WebFetch" >&2
-                echo "URL: $url" >&2
-                claude_result='{}'
+            # When CLAUDE_EXTRACT is true, use Claude CLI to fetch
+            echo "Using Claude AI to extract book information from URL..." >&2
+            
+            # Check if claude CLI is available
+            local claude_cmd=""
+            if [[ -x "/home/almaz/.claude/local/claude" ]]; then
+                claude_cmd="/home/almaz/.claude/local/claude"
+            elif command -v claude &>/dev/null; then
+                claude_cmd="claude"
             fi
             
-            # TODO: Replace above with actual Claude WebFetch call:
-            # claude_result=$(claude webfetch "$url" "Extract book title and author...")
+            if [[ -n "$claude_cmd" ]]; then
+                # Use Claude CLI directly with WebFetch
+                echo "   Using Claude CLI to fetch book data from URL..." >&2
+                
+                # Call claude with WebFetch permission (with timeout)
+                local raw_result=$(timeout 30 $claude_cmd -p "Use WebFetch to visit this URL and extract book metadata: $url" \
+                    --append-system-prompt "You are a book metadata extractor. Visit the URL and extract book information EXACTLY as displayed. Return ONLY valid JSON with fields: title, author, year, publisher, isbn. Preserve original language." \
+                    --allowedTools "WebFetch" \
+                    --output-format json 2>&1)
+                
+                # Debug output
+                if [[ "${DEBUG:-false}" == "true" ]]; then
+                    echo "   Claude CLI raw response: $raw_result" >&2
+                fi
+                
+                # Extract the actual JSON from the result field
+                if [[ "$raw_result" == *'"result":'* ]]; then
+                    # Parse the result field from the JSON response
+                    local result_content=$(echo "$raw_result" | jq -r '.result' 2>/dev/null || echo '')
+                    
+                    # Extract JSON object from the result content using grep
+                    claude_result=$(echo "$result_content" | grep -o '{[^{}]*"title"[^{}]*}' | head -1 2>/dev/null || echo '{}')
+                    
+                    # If that didn't work, try a simpler approach
+                    if [[ "$claude_result" == "{}" ]] && [[ "$result_content" == *"title"* ]]; then
+                        # Manually construct JSON from the content
+                        local title_line=$(echo "$result_content" | grep -o '"title"[^,]*' | head -1)
+                        local author_line=$(echo "$result_content" | grep -o '"author"[^,}]*' | head -1)
+                        if [[ -n "$title_line" ]] && [[ -n "$author_line" ]]; then
+                            claude_result="{$title_line, $author_line}"
+                        fi
+                    fi
+                else
+                    claude_result="$raw_result"
+                fi
+                
+                # Clean up the result - extract just the JSON
+                if [[ "$claude_result" == *"{"* ]]; then
+                    # Extract JSON from the response
+                    claude_result=$(echo "$claude_result" | sed -n '/{/,/}/p' | head -1)
+                fi
+            elif [[ -n "${CLAUDE_EXTRACTION_RESULT:-}" ]]; then
+                # Result was provided via environment variable
+                claude_result="$CLAUDE_EXTRACTION_RESULT"
+            else
+                # Fallback when Claude CLI not available
+                echo "⚠️  Claude CLI not found. Install with: pip install claude-cli" >&2
+                echo "   Or provide extraction via: CLAUDE_EXTRACTION_RESULT='{...}'" >&2
+                
+                # Try basic pattern extraction as fallback
+                local fallback_query=""
+                if [[ "$url" =~ /([^/]+)-ITD[0-9]+/? ]]; then
+                    fallback_query="${BASH_REMATCH[1]}"
+                    fallback_query="${fallback_query//-/ }"
+                    echo "   Fallback: Using URL slug as query: $fallback_query" >&2
+                    claude_result="{\"title\": \"$fallback_query\"}"
+                else
+                    claude_result='{}'
+                fi
+            fi
         else
             # Fallback to local extractors only if Claude not requested
             local extractor_scripts=(
