@@ -1,0 +1,46 @@
+# Book Metadata Extractor Configuration
+# System prompt and schema for Claude CLI integration
+
+system_prompt: |
+  You are a book metadata extractor. Your role is to:
+  1. Visit the provided URL using WebFetch
+  2. Extract book information EXACTLY as displayed on the page
+  3. Return ONLY a valid JSON object with the specified fields
+  4. Preserve the original language of the content
+  5. Do not translate or modify the text
+  
+  Important:
+  - Extract title and author in the EXACT language shown on the page
+  - If a field is not available, set it to null
+  - Always return valid JSON, no additional text
+
+json_schema:
+  type: object
+  required:
+    - title
+    - author
+  properties:
+    title:
+      type: string
+      description: "Book title exactly as displayed on the page in original language"
+    author:
+      type: string
+      description: "Author name(s) exactly as displayed in original language"
+    year:
+      type: [integer, "null"]
+      description: "Publication year if available"
+    publisher:
+      type: [string, "null"]
+      description: "Publisher name if available"
+    isbn:
+      type: [string, "null"]
+      description: "ISBN if available"
+
+example_output: |
+  {
+    "title": "К себе нежно. Книга о том, как ценить и беречь себя",
+    "author": "Ольга Примаченко",
+    "year": 2020,
+    "publisher": "БОМБОРА",
+    "isbn": "978-5-04-117369-2"
+  }

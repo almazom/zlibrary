@@ -33,8 +33,9 @@ ENV_FILE="$PROJECT_ROOT/.env"
 SERVICE_MODE="true"  # Always service mode
 INPUT_FORMAT=""  # Will be detected: url, txt, image
 CONFIDENCE_ENABLED="true"
-MIN_CONFIDENCE="0.4"  # Default minimum confidence
+MIN_CONFIDENCE="0.3"  # Default minimum confidence
 MIN_QUALITY="ANY"     # Default minimum quality (ANY, FAIR, GOOD, EXCELLENT)
+CLAUDE_EXTRACT="false"  # Use Claude AI for URL extraction
 
 # Print functions (only for non-service mode)
 print_error() { [[ "$SERVICE_MODE" != "true" ]] && echo -e "${RED}❌ ERROR: $*${NC}" >&2; }
@@ -58,6 +59,7 @@ OPTIONS:
     --min-confidence NUM  Minimum confidence score (0.0-1.0, default: 0.4)
     --min-quality LEVEL   Minimum quality (ANY|FAIR|GOOD|EXCELLENT, default: ANY)
     --strict              Use strict filtering (--min-confidence 0.8 --min-quality GOOD)
+    --claude-extract      Use Claude AI to extract book info from URLs
     --help                Show this help
 
 INPUT TYPES (auto-detected):
@@ -102,13 +104,166 @@ detect_input_format() {
     fi
 }
 
-# Extract query from URL
+# Extract query from URL - enhanced with Claude extraction
 extract_query_from_url() {
     local url="$1"
     local query=""
     
+    # For ANY URL, try to extract book information
+    # This now works with ALL URLs, not just specific domains
+    if [[ "$url" =~ ^https?:// ]]; then
+        # Only print info in non-service mode
+        [[ "$SERVICE_MODE" != "true" ]] && echo "Extracting book information from URL..." >&2
+        
+        local claude_result=""
+        
+        # MANDATORY: Use Claude cognitive extraction when flag is set
+        if [[ "$CLAUDE_EXTRACT" == "true" ]]; then
+            echo "Using Claude AI to extract book information from URL..." >&2
+            
+            # Determine domain for proper prompt selection
+            local domain=$(echo "$url" | sed -E 's|https?://([^/]+).*|\1|' | sed 's/www\.//')
+            
+            # When CLAUDE_EXTRACT is true, use Claude CLI to fetch
+            echo "Using Claude AI to extract book information from URL..." >&2
+            
+            # Check if claude CLI is available
+            local claude_cmd=""
+            if [[ -x "/home/almaz/.claude/local/claude" ]]; then
+                claude_cmd="/home/almaz/.claude/local/claude"
+            elif command -v claude &>/dev/null; then
+                claude_cmd="claude"
+            fi
+            
+            if [[ -n "$claude_cmd" ]]; then
+                # Use Claude CLI directly with WebFetch
+                echo "   Using Claude CLI to fetch book data from URL..." >&2
+                
+                # Call claude with WebFetch permission (with timeout)
+                local raw_result=$(timeout 30 $claude_cmd -p "Use WebFetch to visit this URL and extract book metadata: $url" \
+                    --append-system-prompt "You are a book metadata extractor. Visit the URL and extract book information EXACTLY as displayed. Return ONLY valid JSON with fields: title, author, year, publisher, isbn. Preserve original language." \
+                    --allowedTools "WebFetch" \
+                    --output-format json 2>&1)
+                
+                # Debug output
+                if [[ "${DEBUG:-false}" == "true" ]]; then
+                    echo "   Claude CLI raw response: $raw_result" >&2
+                fi
+                
+                # Extract the actual JSON from the result field
+                if [[ "$raw_result" == *'"result":'* ]]; then
+                    # Parse the result field from the JSON response
+                    local result_content=$(echo "$raw_result" | jq -r '.result' 2>/dev/null || echo '')
+                    
+                    # Extract JSON object from the result content using grep
+                    claude_result=$(echo "$result_content" | grep -o '{[^{}]*"title"[^{}]*}' | head -1 2>/dev/null || echo '{}')
+                    
+                    # If that didn't work, try a simpler approach
+                    if [[ "$claude_result" == "{}" ]] && [[ "$result_content" == *"title"* ]]; then
+                        # Manually construct JSON from the content
+                        local title_line=$(echo "$result_content" | grep -o '"title"[^,]*' | head -1)
+                        local author_line=$(echo "$result_content" | grep -o '"author"[^,}]*' | head -1)
+                        if [[ -n "$title_line" ]] && [[ -n "$author_line" ]]; then
+                            claude_result="{$title_line, $author_line}"
+                        fi
+                    fi
+                else
+                    claude_result="$raw_result"
+                fi
+                
+                # Clean up the result - extract just the JSON
+                if [[ "$claude_result" == *"{"* ]]; then
+                    # Extract JSON from the response
+                    claude_result=$(echo "$claude_result" | sed -n '/{/,/}/p' | head -1)
+                fi
+            elif [[ -n "${CLAUDE_EXTRACTION_RESULT:-}" ]]; then
+                # Result was provided via environment variable
+                claude_result="$CLAUDE_EXTRACTION_RESULT"
+            else
+                # Fallback when Claude CLI not available
+                echo "⚠️  Claude CLI not found. Install with: pip install claude-cli" >&2
+                echo "   Or provide extraction via: CLAUDE_EXTRACTION_RESULT='{...}'" >&2
+                
+                # Try basic pattern extraction as fallback
+                local fallback_query=""
+                if [[ "$url" =~ /([^/]+)-ITD[0-9]+/? ]]; then
+                    fallback_query="${BASH_REMATCH[1]}"
+                    fallback_query="${fallback_query//-/ }"
+                    echo "   Fallback: Using URL slug as query: $fallback_query" >&2
+                    claude_result="{\"title\": \"$fallback_query\"}"
+                else
+                    claude_result='{}'
+                fi
+            fi
+        else
+            # Fallback to local extractors only if Claude not requested
+            local extractor_scripts=(
+                "$SCRIPT_DIR/universal_extractor.sh"
+                "$SCRIPT_DIR/claude_url_extractor.py"
+                "$SCRIPT_DIR/simple_claude_extractor.py"
+            )
+            
+            for extractor_script in "${extractor_scripts[@]}"; do
+                if [[ -f "$extractor_script" ]]; then
+                    if [[ "$extractor_script" == *.sh ]]; then
+                        claude_result=$(bash "$extractor_script" "$url" 2>/dev/null || echo "{}")
+                    else
+                        claude_result=$(python3 "$extractor_script" "$url" 2>/dev/null || echo "{}")
+                    fi
+                    
+                    # If we got a valid result, use it
+                    if [[ -n "$claude_result" ]] && [[ "$claude_result" != "{}" ]] && [[ "$claude_result" != *"error"* ]]; then
+                        break
+                    fi
+                fi
+            done
+        fi
+        
+        # Process extraction result
+        if [[ -n "$claude_result" ]] && [[ "$claude_result" != "{}" ]]; then
+            local extracted_title
+            local extracted_author
+            
+            extracted_title=$(echo "$claude_result" | jq -r '.title // empty' 2>/dev/null || echo "")
+            extracted_author=$(echo "$claude_result" | jq -r '.author // empty' 2>/dev/null || echo "")
+            
+            if [[ -n "$extracted_title" ]]; then
+                query="$extracted_title"
+                if [[ -n "$extracted_author" ]] && [[ "$extracted_author" != "null" ]]; then
+                    query="$query $extracted_author"
+                fi
+                
+                # Store full extraction result for later use
+                export CLAUDE_EXTRACTION_RESULT="$claude_result"
+                export EXTRACTED_AUTHOR="$extracted_author"  # Store for confidence calculation
+                
+                if [[ -n "$query" ]]; then
+                    echo "$query"
+                    return 0
+                fi
+            fi
+        fi
+    fi
+    
+    # Fallback to pattern-based extraction
+    # Extract from alpinabook.ru URLs
+    if [[ "$url" =~ alpinabook\.ru/catalog/book-([^/]+) ]]; then
+        local slug="${BASH_REMATCH[1]}"
+        
+        # Handle known books
+        if [[ "$slug" =~ pishi-sokrashchay ]]; then
+            query="Пиши сокращай"
+        elif [[ "$slug" =~ atomnye-privychki ]]; then
+            query="Atomic Habits"
+        elif [[ "$slug" =~ chistyy-kod ]]; then
+            query="Clean Code"
+        else
+            # Generic: convert dashes to spaces
+            query=$(echo "$slug" | sed 's/-/ /g' | sed 's/ 2025//' | sed 's/ 2024//')
+        fi
+    
     # Extract from podpisnie.ru URLs
-    if [[ "$url" =~ podpisnie\.ru/books/([^/]+) ]]; then
+    elif [[ "$url" =~ podpisnie\.ru/books/([^/]+) ]]; then
         local slug="${BASH_REMATCH[1]}"
         
         # Known patterns
@@ -123,7 +278,7 @@ extract_query_from_url() {
             query=$(echo "$slug" | sed 's/-/ /g' | awk '{print $1 " " $2 " " $3}')
         fi
     
-    # Extract from Goodreads URLs
+    # Extract from Goodreads URLs (fallback if Claude fails)
     elif [[ "$url" =~ goodreads\.com/book/show/[0-9]+-([^/?]+) ]]; then
         local title="${BASH_REMATCH[1]}"
         query=$(echo "$title" | sed 's/-/ /g' | sed 's/_/ /g')
@@ -155,11 +310,58 @@ extract_query_from_text() {
     echo "$cleaned" | awk '{for(i=1;i<=10 && i<=NF;i++) printf "%s ", $i; print ""}'
 }
 
+# Compare author names for validation
+compare_authors() {
+    local expected_author="$1"
+    local found_author="$2"
+    
+    # Handle empty authors
+    if [[ -z "$expected_author" ]] || [[ -z "$found_author" ]]; then
+        echo "0.0"
+        return
+    fi
+    
+    # Normalize for comparison (lowercase, remove punctuation)
+    local norm_expected
+    local norm_found
+    norm_expected=$(echo "$expected_author" | tr '[:upper:]' '[:lower:]' | sed 's/[.,;:]//g' | sed 's/  */ /g' | xargs)
+    norm_found=$(echo "$found_author" | tr '[:upper:]' '[:lower:]' | sed 's/[.,;:]//g' | sed 's/  */ /g' | xargs)
+    
+    # Check for exact match
+    if [[ "$norm_expected" == "$norm_found" ]]; then
+        echo "1.0"
+        return
+    fi
+    
+    # Check if one contains the other (for partial names)
+    if [[ "$norm_expected" == *"$norm_found"* ]] || [[ "$norm_found" == *"$norm_expected"* ]]; then
+        echo "0.8"
+        return
+    fi
+    
+    # Check last name match (common for authors)
+    local exp_last=$(echo "$norm_expected" | awk '{print $NF}')
+    local found_last=$(echo "$norm_found" | awk '{print $NF}')
+    if [[ -n "$exp_last" ]] && [[ "$exp_last" == "$found_last" ]]; then
+        echo "0.6"
+        return
+    fi
+    
+    # Check first 3 chars match
+    if [[ "${norm_expected:0:3}" == "${norm_found:0:3}" ]]; then
+        echo "0.3"
+        return
+    fi
+    
+    echo "0.0"
+}
+
 # Calculate confidence score
 calculate_confidence() {
     local original_input="$1"
     local found_title="$2"
     local found_authors="$3"
+    local expected_author="${4:-}"  # New parameter for expected author
     
     # Convert to lowercase for comparison
     local input_lower
@@ -226,9 +428,36 @@ calculate_confidence() {
         lang_bonus=0.1
     fi
     
+    # Author validation bonus (CRITICAL for URL extraction)
+    local author_validation_score=0
+    if [[ -n "$expected_author" ]] && [[ -n "$found_authors" ]]; then
+        # Extract first author from the list (main author)
+        local main_author=$(echo "$found_authors" | cut -d',' -f1 | xargs)
+        author_validation_score=$(compare_authors "$expected_author" "$main_author")
+        
+        # Store mismatch for warning
+        if [[ $(echo "$author_validation_score < 0.5" | bc -l) -eq 1 ]]; then
+            export AUTHOR_MISMATCH_WARNING="⚠️  Author mismatch: Expected '$expected_author', found '$main_author'"
+            # Clear message about availability
+            if [[ "$SERVICE_MODE" != "true" ]]; then
+                echo "⚠️  Author mismatch detected!" >&2
+                echo "   Looking for: '$expected_author'" >&2
+                echo "   Found: '$main_author'" >&2
+                echo "   ❌ The book you're looking for is NOT AVAILABLE in this service." >&2
+                echo "   The service has a different book with the same title." >&2
+            fi
+        fi
+    fi
+    
     # Calculate final confidence
     local final_confidence
-    final_confidence=$(echo "scale=3; $overlap_score + $phrase_bonus + $author_bonus + $lang_bonus" | bc)
+    if [[ -n "$expected_author" ]]; then
+        # When we have expected author, it's heavily weighted (40% of score)
+        final_confidence=$(echo "scale=3; $overlap_score + $phrase_bonus + ($author_validation_score * 0.4) + $lang_bonus" | bc)
+    else
+        # Original calculation without author validation
+        final_confidence=$(echo "scale=3; $overlap_score + $phrase_bonus + $author_bonus + $lang_bonus" | bc)
+    fi
     
     # Ensure it doesn't exceed 1.0
     if (( $(echo "$final_confidence > 1.0" | bc -l) )); then
@@ -385,6 +614,10 @@ parse_args() {
                 MIN_QUALITY="GOOD"
                 shift
                 ;;
+            --claude-extract)
+                CLAUDE_EXTRACT="true"
+                shift
+                ;;
             -*)
                 generate_json_response "error" "" "" "" "invalid_option" "Unknown option: $1" >&2
                 exit 1
@@ -418,6 +651,17 @@ main() {
     
     # Detect input format
     INPUT_FORMAT=$(detect_input_format "$QUERY")
+    
+    # Auto-enable download for URLs if not explicitly set
+    if [[ "$INPUT_FORMAT" == "url" ]] && [[ "$DOWNLOAD" == "false" ]]; then
+        DOWNLOAD="true"  # Automatically download when URL is provided
+    fi
+    
+    # MANDATORY: Auto-enable Claude extraction for ALL URLs
+    if [[ "$INPUT_FORMAT" == "url" ]]; then
+        CLAUDE_EXTRACT="true"  # ALWAYS use Claude cognitive layer for URLs
+        [[ "$SERVICE_MODE" != "true" ]] && echo "URL detected: Using Claude cognitive extraction (mandatory)" >&2
+    fi
     
     # Extract appropriate query
     local extracted_query

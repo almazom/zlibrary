@@ -78,4 +78,4 @@ python3 service_simulation_demo.py                                       # Full 
 - **Schema File**: `schemas/book_search_response_schema.json`
 
 ---
-*Auto-updated: 2025-08-08*
+*Auto-updated: 2025-08-08*- [Book Search Cognitive Extraction](memory_cards/mc_book_search_cognitive_extraction_20250812.md) - Mandatory Claude cognitive layer for URL book extraction

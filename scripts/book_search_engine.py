@@ -68,7 +68,7 @@ def check_duplicate(title, author=""):
 
 def should_download(confidence_score, readability_score):
     """Check if book meets quality thresholds"""
-    min_confidence = float(os.getenv('MIN_CONFIDENCE', '0.4'))
+    min_confidence = float(os.getenv('MIN_CONFIDENCE', '0.3'))
     min_quality = os.getenv('MIN_QUALITY', 'ANY')
     
     # Check confidence threshold
@@ -292,7 +292,8 @@ async def search_book(query):
                     # Check for duplicates before downloading
                     book_title = book_info.get('name', '')
                     book_authors = book_info.get('authors', [])
-                    author_name = book_authors[0].get('name', '') if book_authors else ''
+                    # zlibrary API returns 'author' not 'name' as the key
+                    author_name = book_authors[0].get('author', '') if book_authors else ''
                     
                     duplicate = check_duplicate(book_title, author_name)
                     
@@ -326,7 +327,8 @@ async def search_book(query):
                             # Clean filename with format
                             title = book_info.get('name', 'book').replace('/', '_').replace('\\', '_')[:100]
                             authors = book_info.get('authors', [])
-                            author_str = authors[0].get('name', '') if authors else ''
+                            # zlibrary API returns 'author' not 'name' as the key
+                            author_str = authors[0].get('author', '') if authors else ''
                             author_str = author_str.replace('/', '_').replace('\\', '_')[:50]
                             file_ext = format_used if format_used else 'epub'
                             filename = f"{title}_{author_str}.{file_ext}".replace(' ', '_').replace('__', '_')
@@ -363,7 +365,9 @@ async def search_book(query):
                     title_words = set(title_lower.split())
                     overlap = len(query_words & title_words) / len(query_words) if query_words else 0
                     
-                    confidence_score = min(overlap * 0.5 + 0.5, 1.0)
+                    # Better confidence scoring: no base score for no match
+                    # 0% overlap = 0.0, 50% overlap = 0.5, 100% overlap = 1.0
+                    confidence_score = min(overlap, 1.0)
                     
                     if confidence_score >= 0.8:
                         confidence_level = "VERY_HIGH"
@@ -371,12 +375,15 @@ async def search_book(query):
                     elif confidence_score >= 0.6:
                         confidence_level = "HIGH"
                         confidence_desc = "Высокая уверенность - скорее всего это нужная книга"
-                    elif confidence_score >= 0.4:
+                    elif confidence_score >= 0.3:
                         confidence_level = "MEDIUM"
                         confidence_desc = "Средняя уверенность - возможно это нужная книга"
-                    else:
+                    elif confidence_score >= 0.1:
                         confidence_level = "LOW"
                         confidence_desc = "Низкая уверенность - вряд ли это искомая книга"
+                    else:
+                        confidence_level = "VERY_LOW"
+                        confidence_desc = "Очень низкая уверенность - это не та книга"
                     
                     # Simple readability score
                     readability_score = 0.7  # Base score
@@ -440,7 +447,7 @@ async def search_book(query):
                                 "score": round(confidence_score, 3),
                                 "level": confidence_level,
                                 "description": confidence_desc,
-                                "recommended": confidence_score >= 0.4
+                                "recommended": confidence_score >= 0.3
                             },
                             "readability": {
                                 "score": round(readability_score, 3),
@@ -450,7 +457,8 @@ async def search_book(query):
                             },
                             "book_info": {
                                 "title": book_info.get('name', ''),
-                                "authors": [a.get('name', '') for a in book_info.get('authors', [])[:3]],
+                                # zlibrary API returns 'author' not 'name' as the key
+                                "authors": [a.get('author', '') for a in book_info.get('authors', [])[:3]],
                                 "year": book_info.get('year', ''),
                                 "publisher": book_info.get('publisher', ''),
                                 "size": book_info.get('size', ''),

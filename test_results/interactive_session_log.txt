@@ -1,0 +1,21 @@
+[0;34mStarting full batch URL testing...[0m
+[0;34mTesting 7 URLs with Russian focus[0m
+
+[0;34m════════════════════════════════════════════════════════════════[0m
+[0;34m         Interactive URL to EPUB Testing Service                  [0m
+[0;34m════════════════════════════════════════════════════════════════[0m
+
+This service will:
+• Accept book URLs one at a time
+• Extract book information from the URL
+• Download EPUB if confidence ≥ 0.6
+• Generate test report after completion
+
+[1;33mEnter 'done' when finished testing[0m
+
+Enter URL (or 'done'): 
+[0;34mProcessing [1]:[0m https://www.podpisnie.ru/books/maniac/
+⏳ Extracting book information...
+[0;32m✅ Downloaded:[0m Maniac
+   Confidence: 1
+   File: Maniac_.epub (577K)
