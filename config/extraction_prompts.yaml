@@ -66,16 +66,31 @@ litres:
     
     Return ONLY a JSON object with these fields in English keys. No additional text.
 
+eksmo:
+  domains:
+    - "eksmo.ru"
+  prompt: |
+    This is a URL to a page with a book. Extract the following information:
+    - title: Book title EXACTLY as written on the page in its ORIGINAL LANGUAGE (Russian/English/etc)
+    - author: Author's FULL NAME exactly as written on the page in its ORIGINAL LANGUAGE
+    - year: publication year if available
+    - isbn: ISBN if available
+    - publisher: publisher name
+    - language: the language the book is written in
+    
+    CRITICAL: Keep title and author in the EXACT language shown on the page!
+    Return ONLY a JSON object. Example: {"title": "Лунный камень", "author": "Милорад Павич"}
+
 generic:
   # Fallback for any other book-related URL
   prompt: |
-    Extract book information from this webpage:
-    - title: book title
-    - author: author name(s) if available
+    This is a URL to a page with a book. Extract book title and author EXACTLY as written on the page:
+    - title: Book title in the ORIGINAL LANGUAGE it appears on the page
+    - author: Author name in the ORIGINAL LANGUAGE it appears on the page
     - year: publication year if available
-    - description: brief description if available (max 200 chars)
     - isbn: ISBN if available
-    - language: book language if detectable
+    - language: detected language of the book
     
+    IMPORTANT: Preserve the exact language and spelling from the page!
     If this is not a book page, return {"error": "not_a_book_page"}
-    Otherwise return ONLY a JSON object with available fields. No additional text.
+    Return ONLY a JSON object with available fields. No additional text.
