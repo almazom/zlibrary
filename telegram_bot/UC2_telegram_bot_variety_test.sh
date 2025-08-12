@@ -7,6 +7,8 @@
 
 set -euo pipefail
 
+# Load from .env file
+source .env 2>/dev/null || true
 BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-7956300223:AAHsFCu-4djOAy5G_1eBSZMVR1Zb0U3DCls}"
 CHAT_ID="${CHAT_ID:-14835038}"
 

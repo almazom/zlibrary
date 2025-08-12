@@ -7,7 +7,8 @@
 
 set -euo pipefail
 
-# Configuration - Updated token and bot info
+# Configuration - Load from .env file 
+source .env 2>/dev/null || true
 BOT_TOKEN="${TELEGRAM_BOT_TOKEN:-7956300223:AAHsFCu-4djOAy5G_1eBSZMVR1Zb0U3DCls}"
 BOT_USERNAME="epub_toc_based_sample_bot"
 BOT_ID="7956300223"
