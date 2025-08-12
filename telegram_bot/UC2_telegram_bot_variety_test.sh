@@ -1,8 +1,9 @@
 #!/bin/bash
 
-# UC Book Variety Test
+# UC2: Telegram Bot Book Variety Test
 # Tests different types of books: programming, fiction, Russian, academic
-# Usage: ./UC_book_variety_test.sh
+# Bot: @epub_toc_based_sample_bot
+# Usage: ./UC2_telegram_bot_variety_test.sh
 
 set -euo pipefail
 
@@ -194,7 +195,7 @@ test_category() {
 # Main test function
 main() {
     log_info "🚀 Starting Book Variety Test Suite"
-    log_info "🤖 Bot: @epub_toc_based_sample_bot"
+    log_info "🤖 Bot: @epub_toc_based_sample_bot (epub_extractor_bot)"
     log_info "💬 Chat ID: $CHAT_ID"
     log_info "$(date '+%Y-%m-%d %H:%M:%S')"
     log_info ""
