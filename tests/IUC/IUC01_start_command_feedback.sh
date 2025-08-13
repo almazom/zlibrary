@@ -14,11 +14,12 @@ set -euo pipefail
 
 # Configuration from authenticated session
 BOT_USERNAME="epub_toc_based_sample_bot"
-USER_ID="14835038"
+USER_ID="5282615364"  # Working session user ID
 API_ID="29950132"
 API_HASH="e0bf78283481e2341805e3e4e90d289a"
-# Note: String session will need to be refreshed when implementing live tests
-DEMO_MODE="true"  # Set to false when valid session is available
+# Working string session (verified 2025-08-13)
+STRING_SESSION="1ApWapzMBu4PfiXOaKlWyf87-hEiVPCmh152Zt4x2areHOfSfMNDENrJBepoLDZBGqqwrfPvo4zeDB6M8jZZkgUy8pwU9Ba67fDMlnIkESlhbX_aJFLuzbfbd3IwSYh60pLsa0mk8huWxXwHpVNDBeISwp4uGxqF6R_lxWBv_4l3pU3szXcJPS4kw9cTXZkwazvH28AOteP400dazpNpyEt2MbB56GIl9r5B7vQLcATUSW0rvd5-fWF_u2aw243XIHs7H39e_pJt2u0encXQM2Ca7X992Aad2WuHQDv7rDf1CuOO5s8UDZpvxc7ul4W53-PHyEguqLorV1uURpJH6HDDchK4WiTI="
+DEMO_MODE="false"  # Using real session now!
 EXPECTED_RESPONSE="📚 Welcome to Book Search Bot"
 
 # Test timing configuration
@@ -161,26 +162,38 @@ Example: 'Clean Code programming'"
     local response=""
     
     if command -v /home/almaz/MCP/SCRIPTS/telegram-read-manager.sh &>/dev/null; then
-        log_info "🔧 Using MCP telegram-read-manager tool"
-        response=$(/home/almaz/MCP/SCRIPTS/telegram-read-manager.sh --bot "@$BOT_USERNAME" --last 1 2>/dev/null || echo "")
+        log_info "🔧 Using MCP telegram-read-manager tool to read from @$BOT_USERNAME"
+        log_info "📋 Command: /home/almaz/MCP/SCRIPTS/telegram-read-manager.sh read @$BOT_USERNAME --limit 1"
+        response=$(/home/almaz/MCP/SCRIPTS/telegram-read-manager.sh read "@$BOT_USERNAME" --limit 1 2>/dev/null || echo "")
+        log_info "📖 Raw MCP response length: ${#response} characters"
     fi
     
     # Fallback to Python if MCP tool failed or no response
-    if [[ -z "$response" || "$response" == *"ERROR"* ]]; then
-        log_info "🔧 Using Python Telethon fallback"
+    if [[ -z "$response" || "$response" == *"ERROR"* || "$response" == *"Failed to read"* ]]; then
+        log_info "🔧 Using Python Telethon fallback to read from bot conversation"
+        log_info "📋 Reading last message from @$BOT_USERNAME conversation..."
         response=$(python3 -c "
 from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
 try:
     with TelegramClient(StringSession('$STRING_SESSION'), $API_ID, '$API_HASH') as client:
-        messages = client.get_messages('@$BOT_USERNAME', limit=1)
+        # Get messages from the bot conversation
+        messages = client.get_messages('@$BOT_USERNAME', limit=3)
         if messages and len(messages) > 0:
-            print(messages[0].text or '')
+            # Look for the most recent message from the bot (not from us)
+            me = client.get_me()
+            for msg in messages:
+                if msg.from_id and msg.from_id.user_id != me.id:
+                    print(msg.text or msg.message or 'No text content')
+                    break
+            else:
+                print('No bot response found in recent messages')
         else:
-            print('')
+            print('No messages found in conversation')
 except Exception as e:
     print(f'ERROR:{e}')
 " 2>/dev/null)
+        log_info "📖 Python fallback response: $response"
     fi
     
     if [[ -n "$response" && "$response" != *"ERROR"* ]]; then
@@ -305,36 +318,136 @@ main() {
 
 # Help function
 show_help() {
-    echo "IUC01: Start Command Integration Test with Full Feedback Loop"
-    echo ""
-    echo "PURPOSE:"
-    echo "  Tests complete integration from user session to bot response validation"
-    echo "  This establishes the foundation pattern for all IUC tests"
-    echo ""
-    echo "USAGE:"
-    echo "  ./tests/IUC01_start_command_feedback.sh            # Run the test"
-    echo "  ./tests/IUC01_start_command_feedback.sh --help     # Show this help"
-    echo ""
-    echo "REQUIREMENTS:"
-    echo "  - Valid StringSession (embedded in script)"
-    echo "  - Running bot (@epub_toc_based_sample_bot)"
-    echo "  - Python3 with telethon library"
-    echo "  - Access to telegram read tools (MCP or Python fallback)"
-    echo ""
-    echo "AUTHENTICATION:"
-    echo "  Uses stable StringSession from telegram_bot/stable_unified_session.py"
-    echo ""
-    echo "EXPECTED FLOW:"
-    echo "  1. User session sends /start to bot"
-    echo "  2. Bot processes command and responds"
-    echo "  3. Test reads bot response"
-    echo "  4. Validates response contains welcome message"
-    echo ""
-    echo "SUCCESS CRITERIA:"
-    echo "  ✓ Message sent via authenticated user session"
-    echo "  ✓ Bot response received within 5 seconds"
-    echo "  ✓ Response contains: '📚 Welcome to Book Search Bot!'"
-    echo "  ✓ Complete feedback loop validated"
+    cat << 'EOF'
+🎯 IUC01: Start Command Integration Test with Full Feedback Loop
+
+OVERVIEW:
+=========
+IUC (Integration User Cases) tests represent a new paradigm for integration testing 
+that implements complete feedback loops using real Telegram user sessions. This test 
+validates the fundamental /start command interaction with the book search bot.
+
+PURPOSE:
+========
+✅ Test complete integration from real user session to bot response validation
+✅ Establish foundation pattern for all future IUC tests  
+✅ Validate actual Telegram message delivery and response reading
+✅ Demonstrate rich UI feedback with step-by-step validation
+
+USAGE:
+======
+./tests/IUC/IUC01_start_command_feedback.sh                # Run the test
+./tests/IUC/IUC01_start_command_feedback.sh --help         # Show this help
+./tests/IUC/IUC01_start_command_feedback.sh --verbose      # Run with extra logging
+
+ARCHITECTURE:
+=============
+1. 🔐 AUTHENTICATION: Real Telegram user session (StringSession-based)
+2. 📤 SEND MESSAGE: /start command sent via authenticated user session  
+3. 📥 READ RESPONSE: MCP telegram-read-manager + Python Telethon fallback
+4. ✅ VALIDATE: Pattern matching against expected bot response
+5. 📋 REPORT: Comprehensive test results with Moscow timestamps
+
+REQUIREMENTS:
+=============
+✓ Valid StringSession (embedded in script)
+✓ Target bot: @epub_toc_based_sample_bot  
+✓ Python3 with telethon library
+✓ MCP telegram-read-manager tool: /home/almaz/MCP/SCRIPTS/telegram-read-manager.sh
+✓ Network connectivity to Telegram servers
+
+AUTHENTICATION:
+===============
+User: Клава Тех Поддержка (ID: 5282615364)
+Session: StringSession (verified 2025-08-13)
+API: Telegram API via api_id/api_hash
+
+EXPECTED FLOW:
+==============
+STEP 1: 🔐 Authentication Check
+        → Verify StringSession is valid and authorized
+        → Confirm user identity and permissions
+
+STEP 2: 📤 Send /start Command  
+        → Send /start message to @epub_toc_based_sample_bot
+        → Capture message ID and timestamp
+        → 100% identical to manual user typing
+
+STEP 3: 📥 Read Bot Response
+        → Wait 5 seconds for bot processing
+        → Use MCP telegram-read-manager tool
+        → Fallback to Python Telethon if needed
+        → Extract bot's response message
+
+STEP 4: ✅ Validate Response
+        → Check response contains: "📚 Welcome to Book Search Bot"
+        → Generate pass/fail result with detailed feedback
+        → Create comprehensive test report
+
+SUCCESS CRITERIA:
+=================
+✅ Message sent via authenticated user session (Message ID captured)
+✅ Bot response received within timeout period (5-30 seconds)  
+✅ Response contains expected welcome pattern
+✅ Complete feedback loop validated end-to-end
+✅ Rich UI feedback with emojis and step status
+✅ Clear pass/fail indication with detailed logs
+
+FAILURE SCENARIOS:
+==================
+❌ Authentication fails → Check StringSession validity
+❌ Message send fails → Check bot username and network  
+❌ No bot response → Check if bot is running/responsive
+❌ Wrong response → Check bot configuration/welcome message
+❌ Tool failures → Check MCP telegram-read-manager availability
+
+OUTPUT EXAMPLE:
+===============
+🚀 IUC01: Start Command Integration Test
+==========================================
+⏰ Start time: 2025-08-13 08:22:28 MSK
+🤖 Target bot: @epub_toc_based_sample_bot  
+👤 User ID: 5282615364
+🔄 Test type: Complete feedback loop
+
+STEP 1: Authentication Check
+✅ User session authenticated: Клава. Тех поддержка (ID: 5282615364)
+
+STEP 2: Send /start Command
+✅ /start command sent successfully!
+📋 Message ID: 7052
+
+STEP 3: Read Bot Response  
+✅ Bot response received
+📖 Response: "📚 Welcome to Book Search Bot! ..."
+
+STEP 4: Validate Response
+✅ VALIDATION PASSED: Bot responded correctly
+🎉 IUC01 PASSED: Start command feedback loop working!
+
+INTEGRATION WITH IUC SUITE:
+============================
+This test is part of the comprehensive IUC (Integration User Cases) test suite:
+
+IUC01: ✅ Start command feedback loop (THIS TEST)
+IUC02: 🔄 Single book search with EPUB delivery validation  
+IUC03: 🔄 Multi-book batch processing
+IUC04: 🔄 Error handling scenarios
+IUC05: 🔄 Concurrent request handling
+
+DOCUMENTATION:
+==============
+📁 tests/IUC/                           # IUC test suite folder
+📄 tests/IUC/IUC01_SUCCESS_SUMMARY.md   # Detailed success documentation  
+📄 tests/IUC/MANIFEST.md                # IUC suite overview
+📄 tests/IUC/BDD_DOCUMENTATION.md       # BDD patterns and best practices
+📄 AI_Knowledge_Base/mc_iuc_integration_tests_20250813.md  # Memory card
+
+VERSION: 1.0.0
+CREATED: 2025-08-13 MSK
+BRANCH: feat/iuc-integration-tests
+STATUS: ✅ PRODUCTION READY
+EOF
 }
 
 # Handle help flag
