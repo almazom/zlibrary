@@ -96,19 +96,32 @@ async def process_book_request(message: types.Message):
     """Complete pipeline: message -> search -> send EPUB - TEST 4"""
     logger.info(f"🚀 Processing book request from user {message.from_user.id}: '{message.text}'")
     
-    # Send progress message
-    await message.answer("🔍 Searching for book...")
+    # Send progress message and store reference for editing
+    progress_message = await message.answer("🔍 Searching for book...")
+    logger.debug(f"📤 Progress message sent with ID: {progress_message.message_id}")
     
     # Search for book
     result = await search_book(message.text)
     
     if result.get("status") != "success":
-        await message.answer(f"❌ Search failed: {result.get('message', 'Unknown error')}")
+        # Edit progress message to show error
+        try:
+            await progress_message.edit_text(f"❌ Search failed: {result.get('message', 'Unknown error')}")
+            logger.info("✅ Progress message updated with error status")
+        except Exception as e:
+            logger.error(f"❌ Failed to edit progress message: {e}")
+            await message.answer(f"❌ Search failed: {result.get('message', 'Unknown error')}")
         return
     
     book_result = result.get("result", {})
     if not book_result.get("found"):
-        await message.answer("❌ Book not found")
+        # Edit progress message to show not found
+        try:
+            await progress_message.edit_text("❌ Book not found")
+            logger.info("✅ Progress message updated with not found status")
+        except Exception as e:
+            logger.error(f"❌ Failed to edit progress message: {e}")
+            await message.answer("❌ Book not found")
         return
     
     # Extract book info
@@ -117,11 +130,31 @@ async def process_book_request(message: types.Message):
     title = book_info.get("title", "Unknown Book")
     
     if not epub_path:
-        await message.answer("❌ No EPUB file available")
+        # Edit progress message to show no EPUB available
+        try:
+            await progress_message.edit_text("❌ No EPUB file available")
+            logger.info("✅ Progress message updated with no EPUB status")
+        except Exception as e:
+            logger.error(f"❌ Failed to edit progress message: {e}")
+            await message.answer("❌ No EPUB file available")
         return
+    
+    # Edit progress message to show book found
+    try:
+        await progress_message.edit_text(f"✅ Book found: {title}\n📄 Sending EPUB file...")
+        logger.info("✅ Progress message updated with book found status")
+    except Exception as e:
+        logger.error(f"❌ Failed to edit progress message: {e}")
     
     # Send EPUB
     await send_epub_file(message, epub_path, title)
+    
+    # Clean up progress message after successful EPUB delivery
+    try:
+        await progress_message.delete()
+        logger.info("🧹 Progress message cleaned up after successful EPUB delivery")
+    except Exception as e:
+        logger.error(f"❌ Failed to delete progress message: {e}")
 
 
 # Bot handlers
