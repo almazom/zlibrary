@@ -225,8 +225,8 @@ read_bot_response() {
     
     local response=""
     
-    # Try MCP tool first
-    if command -v /home/almaz/MCP/SCRIPTS/telegram-read-manager.sh &>/dev/null; then
+    # Try MCP tool first (skip for now since chat name mapping is needed)
+    if false; then  # Temporarily disabled until proper chat name mapping is implemented
         log_info "🔧 Using MCP telegram-read-manager tool"
         response=$(/home/almaz/MCP/SCRIPTS/telegram-read-manager.sh read "@$DEFAULT_BOT" --limit 1 2>/dev/null || echo "")
     fi
@@ -237,21 +237,33 @@ read_bot_response() {
         response=$(python3 -c "
 from telethon.sync import TelegramClient
 from telethon.sessions import StringSession
+import sys
 try:
     with TelegramClient(StringSession('$DEFAULT_STRING_SESSION'), $DEFAULT_API_ID, '$DEFAULT_API_HASH') as client:
-        messages = client.get_messages('@$DEFAULT_BOT', limit=3)
+        # Read more messages to catch bot responses
+        messages = client.get_messages('@$DEFAULT_BOT', limit=10)
         if messages and len(messages) > 0:
             me = client.get_me()
+            bot_responses = []
             for msg in messages:
-                if msg.from_id and msg.from_id.user_id != me.id:
-                    print(msg.text or msg.message or 'No text content')
-                    break
+                # Look for messages NOT from us (including messages with from_id=None which are bot messages)
+                is_from_me = False
+                if msg.from_id and hasattr(msg.from_id, 'user_id'):
+                    is_from_me = (msg.from_id.user_id == me.id)
+                
+                if not is_from_me and (msg.text or msg.message):
+                    bot_responses.append(msg.text or msg.message)
+            
+            if bot_responses:
+                # Return the most recent bot response
+                print(bot_responses[0])
             else:
                 print('No bot response found in recent messages')
         else:
             print('No messages found in conversation')
 except Exception as e:
     print(f'ERROR:{e}')
+    sys.exit(1)
 " 2>/dev/null)
     fi
     

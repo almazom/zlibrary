@@ -139,7 +139,10 @@ and_I_should_receive_success_confirmation_message() {
 
 # Error scenario implementations
 when_I_send_invalid_book_title() {
-    local invalid_title="${1:-INVALID_BOOK_THAT_DOES_NOT_EXIST_XYZ123}"
+    # Generate truly random non-existent book title with timestamp and random elements
+    local timestamp=$(date +%s%N | cut -b1-13)  # nanosecond precision
+    local random_suffix=$(openssl rand -hex 8 2>/dev/null || echo "$(($RANDOM$RANDOM))")
+    local invalid_title="${1:-NONEXISTENT_BOOK_${timestamp}_${random_suffix}_SHOULD_NOT_EXIST}"
     
     log_when "❌ WHEN: I send invalid book title '$invalid_title'"
     

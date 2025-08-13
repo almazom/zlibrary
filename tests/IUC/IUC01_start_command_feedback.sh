@@ -183,8 +183,13 @@ try:
             # Look for the most recent message from the bot (not from us)
             me = client.get_me()
             for msg in messages:
-                if msg.from_id and msg.from_id.user_id != me.id:
-                    print(msg.text or msg.message or 'No text content')
+                # Look for messages NOT from us (including messages with from_id=None which are bot messages)
+                is_from_me = False
+                if msg.from_id and hasattr(msg.from_id, 'user_id'):
+                    is_from_me = (msg.from_id.user_id == me.id)
+                
+                if not is_from_me and (msg.text or msg.message):
+                    print(msg.text or msg.message)
                     break
             else:
                 print('No bot response found in recent messages')
