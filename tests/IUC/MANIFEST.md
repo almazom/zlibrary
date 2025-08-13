@@ -31,7 +31,6 @@ IUC (Integration User Cases) represent a revolutionary approach to integration t
 tests/IUC/
 ├── MANIFEST.md                          # This file - suite overview
 ├── BDD_DOCUMENTATION.md                 # BDD patterns and best practices  
-├── mc_iuc01_real_feedback_success_20250813.md  # Local success memory card
 ├── IUC01_start_command_feedback.sh      # Start command integration test
 ├── IUC01_SUCCESS_SUMMARY.md             # Detailed success documentation
 ├── lib/                                 # Shared library functions (future)
@@ -217,10 +216,10 @@ git merge feat/iuc-integration-tests
 - `tests/IUC/BDD_DOCUMENTATION.md` - BDD patterns and practices
 - `tests/IUC/IUC01_SUCCESS_SUMMARY.md` - Detailed implementation guide
 - `AI_Knowledge_Base/mc_iuc_integration_tests_20250813.md` - Architecture memory card
+- `AI_Knowledge_Base/mc_iuc_test_suite_complete_20250813.md` - Implementation completion memory card
 
 ### Implementation Guides
 - `tests/IUC/IUC01_start_command_feedback.sh --help` - Comprehensive usage guide
-- `tests/IUC/mc_iuc01_real_feedback_success_20250813.md` - Success case study
 
 ### External References
 - [Telethon Documentation](https://docs.telethon.dev/)
