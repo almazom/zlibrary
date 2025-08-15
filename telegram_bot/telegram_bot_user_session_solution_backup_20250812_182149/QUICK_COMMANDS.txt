@@ -1,0 +1,21 @@
+TELEGRAM USER SESSION BOOK SEARCH - QUICK COMMAND REFERENCE
+
+AUTHENTICATE (once):
+python3 authenticate_step_by_step.py
+
+TRIGGER BOOK SEARCH:
+python3 book_search_trigger.py "Clean Code Robert Martin"
+
+RUN TEST SUITE:
+./UC24_user_session_book_search_test.sh
+
+CHECK SESSION:
+python3 -c "from telethon.sync import TelegramClient; print(TelegramClient('user_session_final', 29950132, 'e0bf78283481e2341805e3e4e90d289a').is_user_authorized())"
+
+MONITOR BOT:
+tail -f bot_tdd.log
+
+SUCCESS PATTERN:
+📝 Text message from user 14835038: '[BOOK_TITLE]'
+🚀 Processing book request from user 14835038: '[BOOK_TITLE]'
+✅ EPUB file sent successfully

@@ -1,0 +1,224 @@
+{
+  "total_cycles": 5,
+  "successful_cycles": 5,
+  "failed_cycles": 0,
+  "success_rate": 100.0,
+  "total_duration": 16.137981414794922,
+  "processor_stats": {
+    "total_processed": 10,
+    "manual_messages": 5,
+    "uc_test_messages": 5,
+    "successful_pipelines": 8
+  },
+  "cycle_results": [
+    {
+      "cycle_number": 1,
+      "book_title": "Clean Code Robert Martin",
+      "manual_result": {
+        "request_id": "9d56a20a-4c7e-402a-bcfd-7981dee32fd1",
+        "source": "manual",
+        "success": true,
+        "result_type": "success",
+        "pipeline_stages": [
+          "Progress message sent \u2705",
+          "Search completed - book found \u2705",
+          "EPUB delivered \u2705"
+        ],
+        "duration": 0.6013979911804199,
+        "message_text": "Clean Code Robert Martin",
+        "processed_at": "2025-08-12T17:20:17.501562"
+      },
+      "uc_result": {
+        "request_id": "9ac6a40e-a208-4c69-b0af-9ad814598880",
+        "source": "uc_test",
+        "success": true,
+        "result_type": "success",
+        "pipeline_stages": [
+          "Progress message sent \u2705",
+          "Search completed - book found \u2705",
+          "EPUB delivered \u2705"
+        ],
+        "duration": 0.6014294624328613,
+        "message_text": "Clean Code Robert Martin",
+        "processed_at": "2025-08-12T17:20:18.604612"
+      },
+      "comparison": {
+        "message_identical": true,
+        "success_identical": true,
+        "result_type_identical": true,
+        "pipeline_stages_identical": true,
+        "pipeline_identical": true,
+        "sources_different": true,
+        "identical_processing": true
+      },
+      "cycle_success": true
+    },
+    {
+      "cycle_number": 2,
+      "book_title": "Python Programming Guide",
+      "manual_result": {
+        "request_id": "d537c380-2a26-4e9e-9a6d-c54cc6b3cc41",
+        "source": "manual",
+        "success": true,
+        "result_type": "success",
+        "pipeline_stages": [
+          "Progress message sent \u2705",
+          "Search completed - book found \u2705",
+          "EPUB delivered \u2705"
+        ],
+        "duration": 0.601276159286499,
+        "message_text": "Python Programming Guide",
+        "processed_at": "2025-08-12T17:20:21.209279"
+      },
+      "uc_result": {
+        "request_id": "0489b3b4-0070-4ed4-a2ba-8b000f8aa8db",
+        "source": "uc_test",
+        "success": true,
+        "result_type": "success",
+        "pipeline_stages": [
+          "Progress message sent \u2705",
+          "Search completed - book found \u2705",
+          "EPUB delivered \u2705"
+        ],
+        "duration": 0.6016650199890137,
+        "message_text": "Python Programming Guide",
+        "processed_at": "2025-08-12T17:20:22.312570"
+      },
+      "comparison": {
+        "message_identical": true,
+        "success_identical": true,
+        "result_type_identical": true,
+        "pipeline_stages_identical": true,
+        "pipeline_identical": true,
+        "sources_different": true,
+        "identical_processing": true
+      },
+      "cycle_success": true
+    },
+    {
+      "cycle_number": 3,
+      "book_title": "Data Structures Algorithms",
+      "manual_result": {
+        "request_id": "95205aa7-9259-49a9-987c-e643996584e4",
+        "source": "manual",
+        "success": true,
+        "result_type": "success",
+        "pipeline_stages": [
+          "Progress message sent \u2705",
+          "Search completed - book found \u2705",
+          "EPUB delivered \u2705"
+        ],
+        "duration": 0.6014399528503418,
+        "message_text": "Data Structures Algorithms",
+        "processed_at": "2025-08-12T17:20:24.917117"
+      },
+      "uc_result": {
+        "request_id": "e718b4d2-0c16-4271-99f6-bd555b2f172e",
+        "source": "uc_test",
+        "success": true,
+        "result_type": "success",
+        "pipeline_stages": [
+          "Progress message sent \u2705",
+          "Search completed - book found \u2705",
+          "EPUB delivered \u2705"
+        ],
+        "duration": 0.6014626026153564,
+        "message_text": "Data Structures Algorithms",
+        "processed_at": "2025-08-12T17:20:26.019977"
+      },
+      "comparison": {
+        "message_identical": true,
+        "success_identical": true,
+        "result_type_identical": true,
+        "pipeline_stages_identical": true,
+        "pipeline_identical": true,
+        "sources_different": true,
+        "identical_processing": true
+      },
+      "cycle_success": true
+    },
+    {
+      "cycle_number": 4,
+      "book_title": "Nonexistent Book XYZ123",
+      "manual_result": {
+        "request_id": "980fa0c8-938c-4a01-bcf6-890996ed6cc6",
+        "source": "manual",
+        "success": false,
+        "result_type": "not_found",
+        "pipeline_stages": [
+          "Progress message sent \u2705",
+          "Search completed - not found \u274c"
+        ],
+        "duration": 0.4010894298553467,
+        "message_text": "Nonexistent Book XYZ123",
+        "processed_at": "2025-08-12T17:20:28.424294"
+      },
+      "uc_result": {
+        "request_id": "573edc3c-a66f-4519-9e27-b968b8d2ae45",
+        "source": "uc_test",
+        "success": false,
+        "result_type": "not_found",
+        "pipeline_stages": [
+          "Progress message sent \u2705",
+          "Search completed - not found \u274c"
+        ],
+        "duration": 0.4018898010253906,
+        "message_text": "Nonexistent Book XYZ123",
+        "processed_at": "2025-08-12T17:20:29.327607"
+      },
+      "comparison": {
+        "message_identical": true,
+        "success_identical": true,
+        "result_type_identical": true,
+        "pipeline_stages_identical": true,
+        "pipeline_identical": true,
+        "sources_different": true,
+        "identical_processing": true
+      },
+      "cycle_success": true
+    },
+    {
+      "cycle_number": 5,
+      "book_title": "Design Patterns Book",
+      "manual_result": {
+        "request_id": "cc09e53e-1b18-4428-89c8-955b674b0fc4",
+        "source": "manual",
+        "success": true,
+        "result_type": "success",
+        "pipeline_stages": [
+          "Progress message sent \u2705",
+          "Search completed - book found \u2705",
+          "EPUB delivered \u2705"
+        ],
+        "duration": 0.6013860702514648,
+        "message_text": "Design Patterns Book",
+        "processed_at": "2025-08-12T17:20:31.932389"
+      },
+      "uc_result": {
+        "request_id": "824c34fe-7a2d-4a6d-b298-6e2e8cef35b8",
+        "source": "uc_test",
+        "success": true,
+        "result_type": "success",
+        "pipeline_stages": [
+          "Progress message sent \u2705",
+          "Search completed - book found \u2705",
+          "EPUB delivered \u2705"
+        ],
+        "duration": 0.6036043167114258,
+        "message_text": "Design Patterns Book",
+        "processed_at": "2025-08-12T17:20:33.037593"
+      },
+      "comparison": {
+        "message_identical": true,
+        "success_identical": true,
+        "result_type_identical": true,
+        "pipeline_stages_identical": true,
+        "pipeline_identical": true,
+        "sources_different": true,
+        "identical_processing": true
+      },
+      "cycle_success": true
+    }
+  ],
+  "verdict": "SUCCESS"
+}

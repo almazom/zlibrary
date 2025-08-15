@@ -1,0 +1,21 @@
+{
+  "solution": "Telegram User Session Book Search",
+  "status": "VERIFIED_WORKING_100_PERCENT",
+  "date": "2025-08-12",
+  "credentials": {
+    "api_id": "29950132",
+    "api_hash": "e0bf78283481e2341805e3e4e90d289a",
+    "phone": "+79163708898",
+    "user_id": "14835038"
+  },
+  "bot_config": {
+    "username": "@epub_toc_based_sample_bot",
+    "token": "7956300223:AAHsFCu-4djOAy5G_1eBSZMVR1Zb0U3DCls"
+  },
+  "success_metrics": {
+    "manual_success_rate": "100%",
+    "user_session_success_rate": "100%",
+    "bot_api_success_rate": "0%",
+    "pipeline_equivalence": "IDENTICAL"
+  }
+}
