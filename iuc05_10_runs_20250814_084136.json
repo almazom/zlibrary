@@ -1,0 +1,25 @@
+[
+  {
+    "status": "success",
+    "timestamp": "2025-08-14 08:41:36 MSK",
+    "source": {
+      "url": "https://eksmo.ru/book/k-sebe-nezhno-ITD1083100/",
+      "store_type": "publisher",
+      "domain": "eksmo.ru"
+    },
+    "extraction": {
+      "title": "К себе нежно. Книга о том, как ценить и беречь себя",
+      "author": "Ольга Примаченко",
+      "year": 2020,
+      "publisher": "БОМБОРА",
+      "isbn": "978-5-04-117369-2",
+      "confidence": 0.9
+    },
+    "metadata": {
+      "attempts": 1,
+      "duration_seconds": 18,
+      "claude_version": "claude-opus-4-1"
+    },
+    "run_number": 1
+  }
+]

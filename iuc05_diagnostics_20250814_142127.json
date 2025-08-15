@@ -1,0 +1,142 @@
+{
+  "metadata": {
+    "timestamp": "2025-08-14T14:21:27.411249",
+    "total_runs": 10,
+    "diagnostic_duration": 46.69078254699707,
+    "architecture": "clean_architecture_v1"
+  },
+  "summary": {
+    "success_rate": 50.0,
+    "avg_extraction_time": 9.338031244277953,
+    "min_extraction_time": 2.0008881092071533,
+    "max_extraction_time": 7.994583606719971,
+    "unique_books": 5,
+    "unique_authors": 5,
+    "categories_distribution": {
+      "RUFANT": 2,
+      "INOFANT": 3
+    }
+  },
+  "detailed_results": [
+    {
+      "run_id": 1,
+      "test_type": "direct_extractor",
+      "timestamp": "2025-08-14T14:20:45.423682",
+      "success": true,
+      "extraction_time": 4.703810453414917,
+      "confidence": 0.95,
+      "source": "libru",
+      "error": null,
+      "book_title": "Пятьсот первый",
+      "book_author": "Березин Александр",
+      "book_url": "https://lib.ru/RUFANT/BEREZIN//501.txt",
+      "category": "RUFANT"
+    },
+    {
+      "run_id": 2,
+      "test_type": "service_layer",
+      "timestamp": "2025-08-14T14:20:53.418329",
+      "success": true,
+      "extraction_time": 7.994583606719971,
+      "confidence": 0.95,
+      "source": "libru",
+      "error": null,
+      "book_title": "Престарелый рок",
+      "book_author": "Уильямс, Уолтер Йон",
+      "book_url": "https://lib.ru/INOFANT/UILIAMS_U_J//maijst3.txt",
+      "category": "INOFANT"
+    },
+    {
+      "run_id": 3,
+      "test_type": "direct_extractor",
+      "timestamp": "2025-08-14T14:20:59.410426",
+      "success": true,
+      "extraction_time": 5.992027044296265,
+      "confidence": 0.95,
+      "source": "libru",
+      "error": null,
+      "book_title": "Скромный гений",
+      "book_author": "Шефнер Вадим",
+      "book_url": "https://lib.ru/RUFANT/SHEFNER//28-01.txt",
+      "category": "RUFANT"
+    },
+    {
+      "run_id": 4,
+      "test_type": "service_layer",
+      "timestamp": "2025-08-14T14:21:05.407772",
+      "success": false,
+      "extraction_time": 5.997241735458374,
+      "confidence": 0.0,
+      "source": "multi",
+      "error": "No book found in category"
+    },
+    {
+      "run_id": 5,
+      "test_type": "direct_extractor",
+      "timestamp": "2025-08-14T14:21:09.406671",
+      "success": false,
+      "extraction_time": 3.998867988586426,
+      "confidence": 0.0,
+      "source": "libru",
+      "error": "No book found in category"
+    },
+    {
+      "run_id": 6,
+      "test_type": "service_layer",
+      "timestamp": "2025-08-14T14:21:11.408302",
+      "success": false,
+      "extraction_time": 2.001603364944458,
+      "confidence": 0.0,
+      "source": "multi",
+      "error": "All extraction sources failed"
+    },
+    {
+      "run_id": 7,
+      "test_type": "direct_extractor",
+      "timestamp": "2025-08-14T14:21:17.409125",
+      "success": true,
+      "extraction_time": 6.0007946491241455,
+      "confidence": 0.95,
+      "source": "libru",
+      "error": null,
+      "book_title": "Колодец Единорога",
+      "book_author": "Прэтт, Флетчер",
+      "book_url": "https://lib.ru/INOFANT/PRATT//wellunic.txt",
+      "category": "INOFANT"
+    },
+    {
+      "run_id": 8,
+      "test_type": "service_layer",
+      "timestamp": "2025-08-14T14:21:19.412074",
+      "success": false,
+      "extraction_time": 2.0028131008148193,
+      "confidence": 0.0,
+      "source": "multi",
+      "error": "All extraction sources failed"
+    },
+    {
+      "run_id": 9,
+      "test_type": "direct_extractor",
+      "timestamp": "2025-08-14T14:21:25.409659",
+      "success": true,
+      "extraction_time": 5.997526168823242,
+      "confidence": 0.95,
+      "source": "libru",
+      "error": null,
+      "book_title": "Камелот",
+      "book_author": "Льюит, Шериан",
+      "book_url": "https://lib.ru/INOFANT/LUIT//r_camelot.txt",
+      "category": "INOFANT"
+    },
+    {
+      "run_id": 10,
+      "test_type": "service_layer",
+      "timestamp": "2025-08-14T14:21:27.410612",
+      "success": false,
+      "extraction_time": 2.0008881092071533,
+      "confidence": 0.0,
+      "source": "multi",
+      "error": "All extraction sources failed"
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "status": "success",
+    "timestamp": "2025-08-14 08:42:32 MSK",
+    "source": {
+      "url": "https://shop.garagemca.org/",
+      "store_type": "independent",
+      "domain": "shop.garagemca.org"
+    },
+    "extraction": {
+      "title": "Примеры. Экспозиция искусства, искусство экспозиции",
+      "author": "Yuri Avvakumov",
+      "year": 2025,
+      "publisher": "GARAGE",
+      "isbn": null,
+      "confidence": 0.9
+    },
+    "metadata": {
+      "attempts": 1,
+      "duration_seconds": 27,
+      "claude_version": "claude-opus-4-1"
+    }
+  }
+]

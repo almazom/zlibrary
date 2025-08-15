@@ -1,0 +1,112 @@
+[
+  {
+    "status": "success",
+    "timestamp": "2025-08-14 07:30:23 MSK",
+    "source": {
+      "url": "https://mybook.ru",
+      "store_type": "digital",
+      "domain": "mybook.ru"
+    },
+    "extraction": {
+      "title": "Преступление и наказание",
+      "author": "Федор Достоевский",
+      "year": null,
+      "publisher": null,
+      "isbn": null,
+      "confidence": 0.3
+    },
+    "metadata": {
+      "attempts": 1,
+      "duration_seconds": 42,
+      "claude_version": "claude-opus-4-1"
+    }
+  },
+  {
+    "status": "success",
+    "timestamp": "2025-08-14 07:31:09 MSK",
+    "source": {
+      "url": "https://www.labirint.ru",
+      "store_type": "commercial",
+      "domain": "www.labirint.ru"
+    },
+    "extraction": {
+      "title": "Занимательная Греция. Рассказы о древнегреческой культуре",
+      "author": "Михаил Гаспаров",
+      "year": null,
+      "publisher": null,
+      "isbn": null,
+      "confidence": 0.3
+    },
+    "metadata": {
+      "attempts": 1,
+      "duration_seconds": 29,
+      "claude_version": "claude-opus-4-1"
+    }
+  },
+  {
+    "status": "success",
+    "timestamp": "2025-08-14 07:31:42 MSK",
+    "source": {
+      "url": "https://alpinabook.ru/catalog/book-pishi-sokrashchay-2025/",
+      "store_type": "academic",
+      "domain": "alpinabook.ru"
+    },
+    "extraction": {
+      "title": "Пиши, сокращай 2025: Как создавать сильный текст",
+      "author": "Максим Ильяхов, Людмила Сарычева",
+      "year": 2025,
+      "publisher": "Альпина Паблишер",
+      "isbn": "978-5-9614-8714-5",
+      "confidence": 0.9
+    },
+    "metadata": {
+      "attempts": 1,
+      "duration_seconds": 22,
+      "claude_version": "claude-opus-4-1"
+    }
+  },
+  {
+    "status": "success",
+    "timestamp": "2025-08-14 08:41:36 MSK",
+    "source": {
+      "url": "https://eksmo.ru/book/k-sebe-nezhno-ITD1083100/",
+      "store_type": "publisher",
+      "domain": "eksmo.ru"
+    },
+    "extraction": {
+      "title": "К себе нежно. Книга о том, как ценить и беречь себя",
+      "author": "Ольга Примаченко",
+      "year": 2020,
+      "publisher": "БОМБОРА",
+      "isbn": "978-5-04-117369-2",
+      "confidence": 0.9
+    },
+    "metadata": {
+      "attempts": 1,
+      "duration_seconds": 18,
+      "claude_version": "claude-opus-4-1"
+    }
+  },
+  {
+    "status": "success",
+    "timestamp": "2025-08-14 08:42:32 MSK",
+    "source": {
+      "url": "https://shop.garagemca.org/",
+      "store_type": "independent",
+      "domain": "shop.garagemca.org"
+    },
+    "extraction": {
+      "title": "Примеры. Экспозиция искусства, искусство экспозиции",
+      "author": "Yuri Avvakumov",
+      "year": 2025,
+      "publisher": "GARAGE",
+      "isbn": null,
+      "confidence": 0.9
+    },
+    "metadata": {
+      "attempts": 1,
+      "duration_seconds": 27,
+      "claude_version": "claude-opus-4-1"
+    }
+  }
+]
