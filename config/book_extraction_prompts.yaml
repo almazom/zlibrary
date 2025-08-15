@@ -1,0 +1,244 @@
+# Book Extraction Prompts Configuration
+# Used by IUC05 Russian bookstore extraction engine
+
+extraction_prompts:
+  
+  # Base system prompt for all bookstore types
+  system_prompt: |
+    You are a specialized book metadata extractor for Russian online bookstores.
+    Your task is to visit web pages and extract book information with high accuracy.
+    
+    CRITICAL REQUIREMENTS:
+    1. Extract ONLY book metadata that is clearly displayed on the page
+    2. Preserve original language (Cyrillic text) exactly as shown
+    3. Return ONLY valid JSON - no explanations or additional text
+    4. Set confidence score based on clarity of information
+    5. If no clear book information found, return confidence: 0.0
+
+  # Main extraction prompt with examples
+  russian_bookstore_extraction:
+    user_prompt: |
+      Use WebFetch to visit this URL and extract book metadata.
+      Look for book title, author, publication year, publisher, and ISBN.
+      
+      Return EXACTLY this JSON format:
+      {
+        "title": "Full book title in original language",
+        "author": "Author name in original language", 
+        "year": 2020,
+        "publisher": "Publisher name",
+        "isbn": "978-X-XX-XXXXXX-X",
+        "confidence": 0.85,
+        "extraction_source": "domain.com",
+        "language": "ru"
+      }
+      
+      CONFIDENCE SCORING:
+      - 0.9-1.0: All fields clearly visible, no ambiguity
+      - 0.7-0.9: Title and author clear, some missing fields
+      - 0.5-0.7: Title clear, author uncertain or missing
+      - 0.3-0.5: Partial information, low certainty
+      - 0.0-0.3: No clear book information found
+      
+      URL to extract from:
+
+  # Store-specific prompts for better accuracy
+  commercial_stores:
+    # For eksmo.ru, ozon.ru, labirint.ru, book24.ru
+    user_prompt: |
+      Use WebFetch to visit this commercial bookstore URL and extract book metadata.
+      Commercial stores typically show: title, author, price, publisher, description.
+      
+      Look for standard e-commerce book fields:
+      - Main product title (usually in h1 or prominent heading)
+      - Author name (often with "автор:" or author link)
+      - Publication details (year, publisher, ISBN)
+      - Book description or summary
+      
+      Return JSON format:
+      {
+        "title": "Book title in Russian",
+        "author": "Author name", 
+        "year": 2020,
+        "publisher": "Publisher",
+        "isbn": "ISBN if available",
+        "confidence": 0.85,
+        "extraction_source": "store_domain",
+        "language": "ru",
+        "store_type": "commercial"
+      }
+      
+      URL:
+
+  cultural_stores:
+    # For admarginem.ru, shop.garagemca.org, slowbooks.ru
+    user_prompt: |
+      Use WebFetch to visit this cultural/art bookstore URL and extract book metadata.
+      Cultural stores often feature: art books, photography, literature, academic works.
+      
+      Look for cultural bookstore patterns:
+      - Artistic book titles (may include subtitles)
+      - Author names (could be artists, photographers, writers)
+      - Publisher (often specialized cultural publishers)
+      - Year and edition information
+      
+      Return JSON format:
+      {
+        "title": "Full book title with subtitle if present",
+        "author": "Author/Artist name", 
+        "year": 2020,
+        "publisher": "Cultural publisher",
+        "isbn": "ISBN if shown",
+        "confidence": 0.85,
+        "extraction_source": "cultural_store",
+        "language": "ru",
+        "store_type": "cultural"
+      }
+      
+      URL:
+
+  independent_stores:
+    # For vse-svobodny.com, podpisnie.ru
+    user_prompt: |
+      Use WebFetch to visit this independent bookstore URL and extract book metadata.
+      Independent stores may have: curated selections, literary works, unique editions.
+      
+      Look for independent bookstore characteristics:
+      - Literary or niche book titles
+      - Author information (may include brief bios)
+      - Publishing details (small publishers, special editions)
+      - Curatorial descriptions or recommendations
+      
+      Return JSON format:
+      {
+        "title": "Book title as displayed",
+        "author": "Author name", 
+        "year": 2020,
+        "publisher": "Publisher name",
+        "isbn": "ISBN code if available",
+        "confidence": 0.85,
+        "extraction_source": "independent_store",
+        "language": "ru",
+        "store_type": "independent"
+      }
+      
+      URL:
+
+  academic_stores:
+    # For alpinabook.ru
+    user_prompt: |
+      Use WebFetch to visit this academic/business bookstore URL and extract book metadata.
+      Academic stores typically feature: business books, educational content, professional development.
+      
+      Look for academic/business book patterns:
+      - Professional or educational titles
+      - Expert author credentials
+      - Academic or business publishers
+      - Edition numbers, publication dates
+      
+      Return JSON format:
+      {
+        "title": "Academic/Business book title",
+        "author": "Expert author name", 
+        "year": 2020,
+        "publisher": "Academic publisher",
+        "isbn": "ISBN number",
+        "confidence": 0.85,
+        "extraction_source": "academic_store",
+        "language": "ru",
+        "store_type": "academic"
+      }
+      
+      URL:
+
+# Output validation schema
+output_schema:
+  type: object
+  required: ["title", "author", "confidence", "extraction_source"]
+  properties:
+    title:
+      type: string
+      minLength: 1
+      description: "Book title in original language"
+    author:
+      type: string  
+      minLength: 1
+      description: "Author name in original language"
+    year:
+      type: integer
+      minimum: 1800
+      maximum: 2030
+      description: "Publication year"
+    publisher:
+      type: string
+      description: "Publisher name"
+    isbn:
+      type: string
+      pattern: "^(97[89]-?\\d{1,5}-?\\d{1,7}-?\\d{1,6}-?\\d|\\d{1,5}-?\\d{1,7}-?\\d{1,6}-?[\\dX])$"
+      description: "ISBN code"
+    confidence:
+      type: number
+      minimum: 0.0
+      maximum: 1.0
+      description: "Extraction confidence score"
+    extraction_source:
+      type: string
+      description: "Source domain"
+    language:
+      type: string
+      default: "ru"
+      description: "Book language code"
+    store_type:
+      type: string
+      enum: ["commercial", "cultural", "independent", "academic"]
+      description: "Bookstore category"
+
+# Test URLs for validation
+test_urls:
+  commercial:
+    - url: "https://eksmo.ru/book/k-sebe-nezhno-ITD1083100/"
+      expected:
+        title: "К себе нежно. Книга о том, как ценить и беречь себя"
+        author: "Ольга Примаченко"
+    - url: "https://www.labirint.ru/books/123456/"  
+      expected:
+        title: "Sample Book Title"
+        author: "Sample Author"
+  
+  cultural:
+    - url: "https://admarginem.ru/books/sample-art-book/"
+      expected:
+        title: "Art Book Sample"
+        author: "Artist Name"
+
+  independent:
+    - url: "https://vse-svobodny.com/books/literary-work/"
+      expected:
+        title: "Literary Work"
+        author: "Writer Name"
+
+# Error handling patterns
+error_patterns:
+  low_confidence:
+    threshold: 0.3
+    action: "retry_with_different_store"
+  
+  invalid_json:
+    pattern: "malformed JSON"
+    action: "log_error_and_retry"
+  
+  network_error:
+    pattern: "connection failed"
+    action: "try_next_bookstore"
+  
+  empty_response:
+    pattern: "no book information"
+    action: "mark_as_failed_extraction"
+
+# Prompt optimization settings
+optimization:
+  max_retries: 3
+  timeout_seconds: 30
+  fallback_confidence: 0.0
+  require_title_and_author: true
+  cyrillic_text_handling: "preserve_original"
