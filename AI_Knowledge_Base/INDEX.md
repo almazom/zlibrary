@@ -18,6 +18,8 @@
 | **mc_scripts_reorganization_20250808.md** | **Operations** | **Scripts Folder Reorganization & Naming** | **2025-08-08** | **Active** |
 | **mc_iuc_integration_tests_20250813.md** | **Integration** | **IUC Integration Tests with Feedback Loop** | **2025-08-13** | **Active** |
 | **mc_iuc_test_suite_complete_20250813.md** | **Integration** | **IUC Test Suite Implementation Complete** | **2025-08-13** | **Complete** |
+| **mc_telegram_accounts_bots_mapping_20250813.md** | **🔴 Critical** | **Telegram Accounts & Bots Mapping (PREVENT CONFUSION)** | **2025-08-13** | **🔴 ALWAYS REFERENCE** |
+| **mc_iuc_environment_test_results_20250813.md** | **✅ Results** | **IUC Environment Test Results - ALL TESTS PASSED** | **2025-08-13** | **✅ SUCCESS** |
 
 ## Deep Research Archives
 | File | Topic | Created | Status |

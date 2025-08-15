@@ -13,7 +13,7 @@ source "$SCRIPT_DIR/lib/iuc_patterns.sh"
 
 # Test configuration
 TEST_NAME="IUC02_book_search"
-TEST_DESCRIPTION="Book search and EPUB delivery integration test"
+TEST_DESCRIPTION="Valid book search and EPUB delivery integration test (atomic)"
 TARGET_BOT="${TARGET_BOT:-@$DEFAULT_BOT}"
 BOOK_TITLE="${BOOK_TITLE:-Clean Code Robert Martin}"
 
@@ -137,50 +137,7 @@ and_I_should_receive_success_confirmation_message() {
     return 0
 }
 
-# Error scenario implementations
-when_I_send_invalid_book_title() {
-    # Generate truly random non-existent book title with timestamp and random elements
-    local timestamp=$(date +%s%N | cut -b1-13)  # nanosecond precision
-    local random_suffix=$(openssl rand -hex 8 2>/dev/null || echo "$(($RANDOM$RANDOM))")
-    local invalid_title="${1:-NONEXISTENT_BOOK_${timestamp}_${random_suffix}_SHOULD_NOT_EXIST}"
-    
-    log_when "❌ WHEN: I send invalid book title '$invalid_title'"
-    
-    # Record start time
-    IUC_TEST_START_TIME=$(get_epoch)
-    
-    # Send invalid book search
-    if send_book_search "$invalid_title" "$TARGET_BOT"; then
-        log_info "📤 Invalid book search request sent"
-    else
-        log_error "❌ Failed to send invalid book search request"
-        return 1
-    fi
-}
-
-then_I_should_receive_error_message() {
-    local timeout="${1:-30}"
-    
-    log_then "❌ THEN: I should receive error message within ${timeout}s"
-    
-    # Read error response
-    local response
-    if response=$(read_bot_response "$timeout"); then
-        log_info "📥 Error response received: $response"
-    else
-        log_error "❌ No error response received within ${timeout}s"
-        return 1
-    fi
-    
-    # Validate error message
-    if validate_response "$response" "No books found\|Not found\|Error" "error"; then
-        log_success "✅ Error message validation passed"
-        return 0
-    else
-        log_error "❌ Error message validation failed"
-        return 1
-    fi
-}
+# IUC02 focuses only on valid book search - error handling moved to IUC03
 
 #=== TEST EXECUTION ===
 
@@ -206,19 +163,7 @@ run_successful_book_search_scenario() {
     log_success "✅ Successful book search scenario completed"
 }
 
-run_book_not_found_scenario() {
-    log_step "🧪 SCENARIO: Book not found error handling"
-    echo "=========================================="
-    
-    # Execute error scenario steps
-    given_I_have_authenticated_session
-    given_the_bot_is_running_and_responsive
-    when_I_send_invalid_book_title
-    then_I_should_receive_progress_message_within_N_seconds 10
-    then_I_should_receive_error_message 30
-    
-    log_success "✅ Book not found scenario completed"
-}
+# run_book_not_found_scenario moved to IUC03 for atomic testing
 
 main() {
     echo "🚀 $TEST_NAME: $TEST_DESCRIPTION"
@@ -231,19 +176,13 @@ main() {
     echo "=================================================="
     echo ""
     
-    # Run test scenarios
+    # Run atomic test scenario - ONLY valid book search
     local overall_result="PASSED"
     
-    # Happy path scenario
+    # Valid book search scenario (atomic test)
     if ! run_successful_book_search_scenario; then
         overall_result="FAILED"
-        log_error "❌ Happy path scenario failed"
-    fi
-    
-    # Error scenario (optional, don't fail overall test)
-    echo ""
-    if ! run_book_not_found_scenario; then
-        log_warn "⚠️ Error scenario had issues (not critical)"
+        log_error "❌ Valid book search scenario failed"
     fi
     
     # Generate final report
@@ -273,18 +212,22 @@ USAGE:
 ./tests/IUC/IUC02_book_search.sh                # Run the test
 ./tests/IUC/IUC02_book_search.sh --help         # Show this help
 
-SCENARIOS:
-==========
-1. Successful book search and delivery
-   - Send book title to bot
+ATOMIC TEST SCENARIO:
+====================
+1. Successful book search and delivery (ONLY)
+   - Send valid book title to bot
    - Receive progress message (🔍 Searching...)
    - Receive EPUB file within 30 seconds
+   - Receive success confirmation message
    - Validate timing and content
-   
-2. Book not found error handling
-   - Send invalid book title
-   - Receive progress message
-   - Receive "No books found" error message
+
+ATOMIC PRINCIPLE:
+=================
+This test focuses ONLY on successful book search:
+- ✅ ONE scenario: Valid book → EPUB delivery
+- ✅ ONE validation: Success pattern matching
+- ✅ ONE outcome: Pass/Fail based on successful delivery
+- ❌ NO error handling (see IUC03 for error scenarios)
 
 GHERKIN SPECIFICATION:
 ======================

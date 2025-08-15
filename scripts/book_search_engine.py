@@ -21,6 +21,7 @@ load_dotenv()
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from zlibrary import AsyncZlib, Extension, Language
+from enhanced_author_search import AuthorSearchEnhancer
 
 def normalize_filename(title, author=""):
     """Normalize filename for comparison"""
@@ -158,6 +159,66 @@ def load_accounts_config():
     except Exception:
         return []
 
+async def try_author_search_fallback(client, query, author_enhancer, debug_info=None):
+    """
+    Try author-based search fallback when regular search fails
+    Returns: (book_info, confidence) or (None, 0)
+    """
+    is_author_only, normalized_author, author_info = author_enhancer.detect_author_only_query(query)
+    
+    if not is_author_only:
+        return None, 0
+    
+    try:
+        if debug_info:
+            debug_info["search_attempts"].append({
+                "strategy": "author_fallback",
+                "detected_author": normalized_author,
+                "timestamp": datetime.now().isoformat()
+            })
+        
+        # Find books by this author
+        author_books = await author_enhancer.find_books_by_author(client, query, limit=5)
+        
+        if not author_books:
+            return None, 0
+        
+        # Select best EPUB from author's works  
+        best_book = author_enhancer.select_best_epub_from_author_books(author_books)
+        
+        if not best_book or not best_book.get('available'):
+            return None, 0
+        
+        # Calculate confidence with author boost
+        confidence = author_enhancer.calculate_confidence_with_author_boost(
+            query, best_book['title'], best_book['authors']
+        )
+        
+        # Create book info in expected format
+        book_info = {
+            'name': best_book['title'],
+            'authors': best_book['authors'], 
+            'year': best_book.get('year', ''),
+            'size': best_book.get('size', ''),
+            'download_url': best_book.get('download_url', ''),
+            'publisher': best_book.get('publisher', ''),
+            'description': f"Book by {normalized_author} found through author search"
+        }
+        
+        if debug_info:
+            debug_info["search_attempts"][-1].update({
+                "author_fallback_success": True,
+                "confidence_with_author_boost": confidence,
+                "selected_book": best_book['title']
+            })
+        
+        return book_info, confidence
+        
+    except Exception as e:
+        if debug_info:
+            debug_info["search_attempts"][-1]["author_fallback_error"] = str(e)
+        return None, 0
+
 async def search_book(query):
     """Simple book search with multi-account fallback, format support, and language fallback"""
     
@@ -208,6 +269,9 @@ async def search_book(query):
     
     # Detect language and prepare fallback
     is_russian, fallback_query = detect_and_translate_query(query)
+    
+    # Initialize author search enhancer
+    author_enhancer = AuthorSearchEnhancer()
     queries_to_try = [query]  # Always try original first
     if is_russian and fallback_query:
         queries_to_try.append(fallback_query)  # Add translation as fallback
@@ -324,6 +388,27 @@ async def search_book(query):
                     if search_results and search_results.result and format_used:
                         break
                 
+                # Try author search fallback if regular search failed
+                fallback_book_info = None
+                fallback_confidence = 0
+                
+                if not search_results or not search_results.result:
+                    if format_pref == 'epub':  # Only for EPUB searches
+                        fallback_book_info, fallback_confidence = await try_author_search_fallback(
+                            client, query, author_enhancer, debug_info if debug_mode else None
+                        )
+                        
+                        # Check if fallback meets confidence threshold
+                        if (fallback_book_info and 
+                            fallback_confidence >= float(os.getenv('MIN_CONFIDENCE', '0.3'))):
+                            # Use fallback result
+                            book_info = fallback_book_info
+                            format_used = 'epub'
+                            actual_query_used = query
+                            language_fallback_used = False
+                            # Create mock search result
+                            search_results = type('MockResults', (), {'result': [True]})()
+                
                 if not search_results or not search_results.result:
                     response["status"] = "not_found"
                     response["result"] = {
@@ -331,9 +416,14 @@ async def search_book(query):
                         "message": "No books found matching the search criteria"
                     }
                 else:
-                    # Get book details
-                    book = search_results.result[0]
-                    book_info = await book.fetch()
+                    # Get book details (either from regular search or fallback)
+                    if fallback_book_info:
+                        # Use fallback book info
+                        book_info = fallback_book_info
+                    else:
+                        # Get from regular search result
+                        book = search_results.result[0]
+                        book_info = await book.fetch()
                     
                     # Check for duplicates before downloading
                     book_title = book_info.get('name', '')
@@ -402,18 +492,30 @@ async def search_book(query):
                             except Exception as e:
                                 download_path = None
                     
-                    # Calculate simple confidence
-                    query_lower = query.lower()
-                    title_lower = book_info.get('name', '').lower()
-                    
-                    # Word overlap
-                    query_words = set(query_lower.split())
-                    title_words = set(title_lower.split())
-                    overlap = len(query_words & title_words) / len(query_words) if query_words else 0
-                    
-                    # Better confidence scoring: no base score for no match
-                    # 0% overlap = 0.0, 50% overlap = 0.5, 100% overlap = 1.0
-                    confidence_score = min(overlap, 1.0)
+                    # Calculate confidence with author boost for author searches
+                    if fallback_book_info and fallback_confidence > 0:
+                        # Use enhanced confidence from author fallback
+                        confidence_score = fallback_confidence
+                    else:
+                        # Standard confidence calculation 
+                        query_lower = query.lower()
+                        title_lower = book_info.get('name', '').lower()
+                        
+                        # Word overlap
+                        query_words = set(query_lower.split())
+                        title_words = set(title_lower.split())
+                        overlap = len(query_words & title_words) / len(query_words) if query_words else 0
+                        
+                        # Check if this might be an author search that should get a boost
+                        is_author_only, _, _ = author_enhancer.detect_author_only_query(query)
+                        if is_author_only:
+                            # Apply author boost even for regular search results
+                            confidence_score = author_enhancer.calculate_confidence_with_author_boost(
+                                query, book_info.get('name', ''), book_info.get('authors', [])
+                            )
+                        else:
+                            # Standard confidence: 0% overlap = 0.0, 50% overlap = 0.5, 100% overlap = 1.0
+                            confidence_score = min(overlap, 1.0)
                     
                     if confidence_score >= 0.8:
                         confidence_level = "VERY_HIGH"
