@@ -1,0 +1,48 @@
+# Клава. Тех поддержка - Telegram User Session
+# Created: 2025-08-13 13:27 MSK
+# Purpose: Primary IUC test user credentials
+# Status: ✅ VERIFIED WORKING
+
+## USER INFORMATION
+DISPLAY_NAME="Клава. Тех поддержка"
+USERNAME="@ClavaFamily" 
+USER_ID="5282615364"
+ROLE="Primary IUC test user"
+
+## TELEGRAM API CREDENTIALS
+API_ID="29950132"
+API_HASH="e0bf78283481e2341805e3e4e90d289a"
+
+## STRING SESSION (for Telethon)
+STRING_SESSION="1ApWapzMBu4PfiXOaKlWyf87-hEiVPCmh152Zt4x2areHOfSfMNDENrJBepoLDZBGqqwrfPvo4zeDB6M8jZZkgUy8pwU9Ba67fDMlnIkESlhbX_aJFLuzbfbd3IwSYh60pLsa0mk8huWxXwHpVNDBeISwp4uGxqF6R_lxWBv_4l3pU3szXcJPS4kw9cTXZkwazvH28AOteP400dazpNpyEt2MbB56GIl9r5B7vQLcATUSW0rvd5-fWF_u2aw243XIHs7H39e_pJt2u0encXQM2Ca7X992Aad2WuHQDv7rDf1CuOO5s8UDZpvxc7ul4W53-PHyEguqLorV1uURpJH6HDDchK4WiTI="
+
+## USAGE EXAMPLES
+
+# Authentication check:
+python3 -c "
+from telethon.sync import TelegramClient
+from telethon.sessions import StringSession
+with TelegramClient(StringSession('$STRING_SESSION'), $API_ID, '$API_HASH') as client:
+    me = client.get_me()
+    print(f'Authenticated: {me.first_name} (ID: {me.id})')
+"
+
+# Send message to bot:
+python3 -c "
+from telethon.sync import TelegramClient
+from telethon.sessions import StringSession
+with TelegramClient(StringSession('$STRING_SESSION'), $API_ID, '$API_HASH') as client:
+    message = client.send_message('@epub_toc_based_sample_bot', 'Умберто эко')
+    print(f'Message sent: ID {message.id}')
+"
+
+## VERIFIED WORKING WITH BOTS
+- ✅ @epub_toc_based_sample_bot (primary book search)
+- ✅ Enhanced author search functionality
+- ✅ Message ID range: 7000+ (as of 2025-08-13)
+
+## NOTES
+- This session is corruption-proof and long-term stable
+- Last verified: 2025-08-13 13:27 MSK
+- Used in all IUC integration tests
+- Primary account for book search testing

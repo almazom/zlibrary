@@ -1,0 +1,150 @@
+{
+  "name": "book_discovery",
+  "version": "1.0.0",
+  "description": "Atomic engine that discovers random book URLs from Russian bookstore category pages",
+  "author": "IUC Test Framework",
+  "created": "2025-08-13",
+  "updated": "2025-08-13",
+  
+  "api": {
+    "interface": "cli",
+    "executable": "engine.sh",
+    "input": {
+      "format": "arguments",
+      "required": ["--store"],
+      "optional": [
+        "--category",
+        "--page", 
+        "--count",
+        "--output-format",
+        "--timeout",
+        "--config"
+      ]
+    },
+    "output": {
+      "format": "json",
+      "schema": "book_urls_array_v1",
+      "stdout": true,
+      "structure": {
+        "success": {
+          "status": "success",
+          "store": "string",
+          "category": "string", 
+          "page": "number",
+          "discovered_count": "number",
+          "books": [
+            {
+              "title": "string",
+              "url": "string",
+              "discovery_confidence": "number"
+            }
+          ],
+          "timestamp": "iso8601"
+        },
+        "error": {
+          "status": "error",
+          "error_code": "string",
+          "message": "string",
+          "timestamp": "iso8601"
+        }
+      },
+      "exit_codes": {
+        "0": "success - books discovered",
+        "1": "no_books_found - store/category returned no books",
+        "2": "invalid_arguments - missing required parameters",
+        "3": "network_error - timeout or connection failure",
+        "4": "store_not_supported - unsupported bookstore",
+        "5": "parsing_error - could not parse store response"
+      }
+    }
+  },
+  
+  "configuration": {
+    "default_config": "config/defaults.yaml",
+    "supported_stores": [
+      {
+        "name": "eksmo.ru",
+        "categories": ["books", "fiction", "non-fiction", "novelties", "bestsellers"],
+        "pagination_support": true,
+        "max_pages": 50
+      },
+      {
+        "name": "alpinabook.ru", 
+        "categories": ["business", "psychology", "science", "education"],
+        "pagination_support": true,
+        "max_pages": 20
+      },
+      {
+        "name": "labirint.ru",
+        "categories": ["books", "fiction", "children", "education"],
+        "pagination_support": true,
+        "max_pages": 100
+      }
+    ]
+  },
+  
+  "dependencies": {
+    "system_required": ["bash", "curl", "jq"],
+    "system_optional": ["timeout"],
+    "external_required": ["claude"],
+    "config_files": ["config/defaults.yaml"],
+    "minimum_versions": {
+      "bash": "4.0",
+      "jq": "1.5"
+    }
+  },
+  
+  "compatibility": {
+    "bash_version": ">=4.0",
+    "operating_systems": ["linux", "macos"],
+    "tested_environments": ["Ubuntu 20.04", "macOS 12+"],
+    "known_limitations": [
+      "Some stores may implement anti-bot protection",
+      "Requires internet connectivity",
+      "Claude AI service must be available"
+    ]
+  },
+  
+  "performance": {
+    "typical_response_time": "15-30 seconds",
+    "timeout_default": "60 seconds",
+    "books_per_request": "3-5 typical",
+    "rate_limiting": "Built-in delays to respect store policies"
+  },
+  
+  "testing": {
+    "unit_tests": "tests/unit_tests.sh",
+    "integration_tests": "tests/integration_tests.sh", 
+    "fixtures": "tests/fixtures/",
+    "test_coverage": "85%",
+    "test_stores": ["eksmo.ru", "alpinabook.ru"],
+    "ci_compatible": true
+  },
+  
+  "documentation": {
+    "readme": "README.md",
+    "api_docs": "docs/api.md",
+    "examples": "examples/usage_examples.sh",
+    "troubleshooting": "docs/troubleshooting.md"
+  },
+  
+  "quality": {
+    "code_style": "bash strict mode (set -euo pipefail)",
+    "error_handling": "Comprehensive with proper exit codes",
+    "logging": "Structured with timestamps",
+    "security": "No hardcoded credentials, parameterized inputs"
+  },
+  
+  "changelog": [
+    {
+      "version": "1.0.0",
+      "date": "2025-08-13", 
+      "changes": [
+        "Initial release",
+        "Support for eksmo.ru and alpinabook.ru",
+        "Claude AI integration for book URL discovery",
+        "Comprehensive error handling and logging"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+# @epub_toc_based_sample_bot - Telegram Bot Credentials
+# Created: 2025-08-13 13:28 MSK
+# Purpose: Primary Z-Library book search bot
+# Status: ✅ ACTIVE & ENHANCED
+
+## BOT INFORMATION
+BOT_NAME="epub_extractor_bot"
+BOT_USERNAME="@epub_toc_based_sample_bot"
+BOT_ID="7956300223"
+PURPOSE="Z-Library book search with enhanced author search"
+
+## BOT TOKEN
+BOT_TOKEN="7956300223:AAHsFCu-4djOAy5G_1eBSZMVR1Zb0U3DCls"
+
+## API ENDPOINTS
+TELEGRAM_API_URL="https://api.telegram.org/bot$BOT_TOKEN"
+SEND_MESSAGE_URL="$TELEGRAM_API_URL/sendMessage"
+GET_ME_URL="$TELEGRAM_API_URL/getMe"
+
+## ENHANCED FEATURES
+- ✅ Enhanced Author Search (confidence boost 0.0 → 0.9)
+- ✅ Progress messages with real-time updates
+- ✅ EPUB file delivery
+- ✅ Error handling and user feedback
+- ✅ Author-only query detection (e.g., "Умберто эко")
+
+## USAGE EXAMPLES
+
+# Check bot status:
+curl -s "https://api.telegram.org/bot$BOT_TOKEN/getMe" | jq .
+
+# Send message to клава техподержка:
+curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
+  -H "Content-Type: application/json" \
+  -d '{"chat_id": "5282615364", "text": "Умберто эко"}'
+
+# Test enhanced author search:
+curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
+  -H "Content-Type: application/json" \
+  -d '{"chat_id": "5282615364", "text": "Платон"}' | jq .result.message_id
+
+## SERVER MANAGEMENT
+# Check status:
+cd /home/almaz/microservices/zlibrary_api_module && ./scripts/venv-manager.sh status
+
+# Restart bot:
+./scripts/venv-manager.sh restart
+
+# Watch logs:
+./scripts/venv-manager.sh logs --follow
+
+## VERIFIED WORKING WITH USERS
+- ✅ клава техподержка (ID: 5282615364) - Primary test user
+- ✅ Alternative user (ID: 14835038) - Secondary
+
+## ENHANCED AUTHOR SEARCH TESTS
+Query: "Умберто эко" → Returns: "Имя розы" with HIGH confidence
+Query: "Платон" → Returns: "Собрание сочинений. Платон"  
+Query: "Robert Martin" → Returns: Programming books
+
+## FILES & PROCESSES
+- Server Script: /telegram_bot/bot_app.py
+- Enhanced Search: /scripts/enhanced_author_search.py  
+- Book Engine: /scripts/book_search_engine.py
+- Process: Managed by venv-manager.sh
+- Logs: /telegram_bot/logs/venv_bot.log
+
+## NOTES
+- Current PID: 4181960 (check with venv-manager.sh status)
+- Last restarted: 2025-08-13 13:22 MSK
+- Enhanced search implemented: 2025-08-13
+- Working combinations verified with klava_teh_podderzhka session

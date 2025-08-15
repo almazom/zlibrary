@@ -1,0 +1,94 @@
+# Book Discovery Engine - Default Configuration
+# Version: 1.0.0
+
+# Engine behavior settings
+engine:
+  name: "book_discovery"
+  version: "1.0.0"
+  timeout_seconds: 60
+  max_retries: 3
+  
+# Discovery settings  
+discovery:
+  books_per_request: 5
+  default_category: "books"
+  random_page_selection: true
+  confidence_threshold: 0.7
+  
+# Store configurations
+stores:
+  eksmo.ru:
+    enabled: true
+    base_url: "https://eksmo.ru"
+    categories:
+      books: "/catalog/books/"
+      fiction: "/catalog/fiction/" 
+      non-fiction: "/catalog/non-fiction/"
+      novelties: "/novelties/"
+      bestsellers: "/bestsellers/"
+    pagination:
+      pattern: "?page={page}"
+      max_pages: 50
+      start_page: 1
+    rate_limiting:
+      delay_ms: 2000
+      respect_robots_txt: true
+    
+  alpinabook.ru:
+    enabled: true  
+    base_url: "https://alpinabook.ru"
+    categories:
+      business: "/catalog/business/"
+      psychology: "/catalog/psychology/"
+      science: "/catalog/science/"
+      education: "/catalog/education/"
+    pagination:
+      pattern: "?page={page}"
+      max_pages: 20
+      start_page: 1
+    rate_limiting:
+      delay_ms: 1500
+      respect_robots_txt: true
+      
+  labirint.ru:
+    enabled: false  # Disabled due to anti-bot protection
+    base_url: "https://www.labirint.ru"
+    categories:
+      books: "/books/"
+      fiction: "/fiction/"
+      children: "/children/"
+    pagination:
+      pattern: "?page={page}"
+      max_pages: 100
+      start_page: 1
+    rate_limiting:
+      delay_ms: 3000
+      respect_robots_txt: true
+
+# Claude AI integration
+claude:
+  command: "claude"
+  args: ["-p", "--allowedTools", "WebFetch", "--output-format", "json"]
+  timeout_seconds: 45
+  max_attempts: 2
+  
+# Output formatting
+output:
+  format: "json"
+  pretty_print: false
+  include_metadata: true
+  timestamp_format: "iso8601"
+  
+# Error handling
+error_handling:
+  continue_on_network_error: false
+  continue_on_parsing_error: false  
+  log_level: "info"
+  include_stack_trace: false
+  
+# Logging
+logging:
+  enabled: true
+  level: "info"  # debug, info, warn, error
+  include_timestamps: true
+  structured_format: true

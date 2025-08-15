@@ -1,0 +1,50 @@
+[
+    {
+        "title": "Ученица Злодея",
+        "author": "Ханна Николь Мерер",
+        "confidence": 0.9,
+        "source_url": "https://eksmo.ru/catalog/books/fiction/"
+    },
+    {
+        "title": "Дом на птичьем острове", 
+        "author": "Таша Муляр",
+        "confidence": 0.9,
+        "source_url": "https://eksmo.ru/catalog/books/fiction/"
+    },
+    {
+        "title": "Янтарики",
+        "author": "Ольга Савельева", 
+        "confidence": 0.9,
+        "source_url": "https://eksmo.ru/catalog/books/fiction/"
+    },
+    {
+        "title": "Доктор Фальк и дачные убийства",
+        "author": "Игорь Евдокимов",
+        "confidence": 0.9,
+        "source_url": "https://eksmo.ru/catalog/books/fiction/"
+    },
+    {
+        "title": "Демонология по Волкову. Сноходцы",
+        "author": "Наталья Тимошенко",
+        "confidence": 0.9,
+        "source_url": "https://eksmo.ru/catalog/books/fiction/"
+    },
+    {
+        "title": "К себе нежно. Книга о том, как ценить и беречь себя",
+        "author": "Ольга Примаченко",
+        "confidence": 0.95,
+        "source_url": "https://eksmo.ru/book/k-sebe-nezhno-ITD1083100/"
+    },
+    {
+        "title": "Незападная история науки",
+        "author": "Джеймс Поскетт", 
+        "confidence": 0.9,
+        "source_url": "https://alpinabook.ru/catalog/book-nezapadnaya-istoriya-nauki/"
+    },
+    {
+        "title": "Лунный камень",
+        "author": "Милорад Павич",
+        "confidence": 0.85,
+        "source_url": "https://eksmo.ru/book/lunnyy-kamen-ITD1334449/"
+    }
+]
