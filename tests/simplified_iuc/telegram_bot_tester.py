@@ -218,85 +218,49 @@ class SimplifiedIUCTests:
     
     async def test_start_command(self) -> Dict[str, Any]:
         """Test /start command - replaces IUC01"""
-        start_time = time.time()
-        
-        response = await self.tester.send_and_wait("/start")
-        
-        # Simple validation - no complex pattern matching
-        success = (
-            "welcome" in response.text.lower() or 
-            "book search" in response.text.lower() or
-            "📚" in response.text
+        return await self._run_test(
+            "/start",
+            lambda r: any(x in r.text.lower() for x in ["welcome", "book search"]) or "📚" in r.text,
+            "test_start_command"
         )
-        
-        return {
-            'test': 'test_start_command',
-            'status': 'PASS' if success else 'FAIL',
-            'message': f"Response: {response.text[:100]}...",
-            'duration': time.time() - start_time,
-            'response': response
-        }
     
     async def test_book_search_success(self) -> Dict[str, Any]:
         """Test successful book search - replaces IUC02 success scenarios"""
-        start_time = time.time()
-        
-        # Use a book likely to be found
-        response = await self.tester.send_and_wait("Clean Code Robert Martin", timeout=30)
-        
-        # Simple success criteria
-        success = (
-            response.has_file or
-            "searching" in response.text.lower() or
-            "found" in response.text.lower() or
-            len(response.text) > 10  # Got some response
+        return await self._run_test(
+            "Clean Code Robert Martin",
+            lambda r: r.has_file or any(x in r.text.lower() for x in ["searching", "found"]) or len(r.text) > 10,
+            "test_book_search_success",
+            timeout=30
         )
-        
-        return {
-            'test': 'test_book_search_success',
-            'status': 'PASS' if success else 'FAIL',
-            'message': f"Response: {response.text[:100]}... (has_file: {response.has_file})",
-            'duration': time.time() - start_time,
-            'response': response
-        }
     
     async def test_book_search_failure(self) -> Dict[str, Any]:
         """Test failed book search - replaces IUC02 error scenarios"""
-        start_time = time.time()
-        
-        # Use obviously invalid book title
         fake_title = f"NonExistentBook{int(time.time())}"
-        response = await self.tester.send_and_wait(fake_title, timeout=30)
-        
-        # Simple failure criteria
-        success = (
-            "not found" in response.text.lower() or
-            "error" in response.text.lower() or 
-            "failed" in response.text.lower() or
-            len(response.text) > 5  # Got some error response
+        return await self._run_test(
+            fake_title,
+            lambda r: any(x in r.text.lower() for x in ["not found", "error", "failed"]) or len(r.text) > 5,
+            "test_book_search_failure",
+            timeout=30
         )
-        
-        return {
-            'test': 'test_book_search_failure',
-            'status': 'PASS' if success else 'FAIL',
-            'message': f"Response: {response.text[:100]}...",
-            'duration': time.time() - start_time,
-            'response': response
-        }
     
     async def test_invalid_command(self) -> Dict[str, Any]:
         """Test invalid command handling"""
+        return await self._run_test(
+            "/invalidcommand123",
+            lambda r: len(r.text) > 0,
+            "test_invalid_command"
+        )
+    
+    async def _run_test(self, message: str, validator, test_name: str, timeout: int = None) -> Dict[str, Any]:
+        """Shared test runner to reduce duplication"""
         start_time = time.time()
-        
-        response = await self.tester.send_and_wait("/invalidcommand123")
-        
-        # Any response is good enough
-        success = len(response.text) > 0
+        response = await self.tester.send_and_wait(message, timeout=timeout)
+        success = validator(response)
         
         return {
-            'test': 'test_invalid_command',
+            'test': test_name,
             'status': 'PASS' if success else 'FAIL',
-            'message': f"Response: {response.text[:100]}...",
+            'message': f"Response: {response.text[:100]}..." + (f" (has_file: {response.has_file})" if hasattr(response, 'has_file') else ""),
             'duration': time.time() - start_time,
             'response': response
         }
