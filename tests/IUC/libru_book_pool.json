@@ -324,5 +324,60 @@
     "extraction_time": 4.624905586242676,
     "source": "lib.ru/RUFANT",
     "category": "RUFANT"
+  },
+  {
+    "title": "Женщина в зеленом дождевике",
+    "author": "тЮКЕЕБ бКЮДХЛХП",
+    "url": "https://lib.ru/RUFANT/FELEEW/woman.txt",
+    "confidence": 0.95,
+    "hash": "2ca21ea43d9c8f83e6e9f1c16d00c5e4",
+    "extracted_at": "2025-08-15T15:59:43.507317",
+    "extraction_time": 6.290948152542114,
+    "source": "lib.ru/RUFANT",
+    "category": "RUFANT"
+  },
+  {
+    "title": "Трамвайная петля",
+    "author": "Сыч Евгений",
+    "url": "https://lib.ru/RUFANT/SYCH/4c-10.txt",
+    "confidence": 0.95,
+    "hash": "f9bea6940467f5e3e841e680f0ecfaa8",
+    "extracted_at": "2025-08-15T16:02:15.684025",
+    "extraction_time": 4.644831418991089,
+    "source": "lib.ru/RUFANT",
+    "category": "RUFANT"
+  },
+  {
+    "title": "пНДФЕП аХМЩЛ. оНЯКЕДМХИ ЙНГШПЭ",
+    "author": "Бинэм, Роджер; Хоухи, Рэймонд",
+    "url": "https://lib.ru/INOFANT/BINEM/03-63.txt",
+    "confidence": 0.95,
+    "hash": "5f52c5f53d6271221bf3ef9329be8393",
+    "extracted_at": "2025-08-15T16:18:31.841220",
+    "extraction_time": 4.603449106216431,
+    "source": "lib.ru/INOFANT",
+    "category": "INOFANT"
+  },
+  {
+    "title": "Тепловая смерть Вселенной",
+    "author": "Золин, Памела",
+    "url": "https://lib.ru/INOFANT/ZOLIN/r_pamela_zoline_gu.txt",
+    "confidence": 0.95,
+    "hash": "d00db9c0cb0cca0ebf291e0188f2479a",
+    "extracted_at": "2025-08-15T16:18:45.455113",
+    "extraction_time": 4.5938780307769775,
+    "source": "lib.ru/INOFANT",
+    "category": "INOFANT"
+  },
+  {
+    "title": "Внуки наших внуков",
+    "author": "Сафроновы Юрий и Светлана",
+    "url": "https://lib.ru/RUFANT/SAFRONOWY/grandson.txt",
+    "confidence": 0.95,
+    "hash": "208fc22ee428b134b124ac67850d8073",
+    "extracted_at": "2025-08-15T16:21:06.094734",
+    "extraction_time": 4.600433588027954,
+    "source": "lib.ru/RUFANT",
+    "category": "RUFANT"
   }
 ]
