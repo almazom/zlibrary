@@ -14,6 +14,8 @@ import re
 import time
 import hashlib
 import argparse
+import os
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
@@ -216,29 +218,7 @@ class LibRuExtractor:
         
         return selected_cat, selected_url
     
-    async def send_telegram_notification(self, book_data: BookData, category: str):
-        """Send extraction success to Telegram"""
-        try:
-            import subprocess
-            message = f"""📚 NEW BOOK EXTRACTED!
-
-📖 Title: {book_data.title}
-✍️ Author: {book_data.author}
-📂 Category: lib.ru/{category}
-⏱️ Time: {book_data.extraction_time:.1f}s
-🎯 Confidence: {book_data.confidence}
-
-🔗 URL: {book_data.source_url}"""
-            
-            subprocess.run([
-                "/home/almaz/MCP/SCRIPTS/telegram_send_manager.sh",
-                "send",
-                message
-            ], capture_output=True, timeout=10)
-            print("📱 Telegram notification sent")
-            
-        except Exception as e:
-            print(f"⚠️ Telegram notification failed: {e}")
+    
     
     async def extract_random_book(self) -> Tuple[BookData, str]:
         """Main extraction method with multi-category support"""
@@ -293,9 +273,6 @@ class LibRuExtractor:
                     
                     # Add to pool
                     self.add_to_pool(book_data, selected_category)
-                    
-                    # Send Telegram notification
-                    await self.send_telegram_notification(book_data, selected_category)
                     
                     print(f"⚡ Extraction completed in {extraction_time:.2f}s")
                     return book_data, selected_category
@@ -391,6 +368,7 @@ Examples:
 
 async def main():
     args = parse_arguments()
+    load_dotenv()  # Load .env file
     extractor = LibRuExtractor()
     
     # Override category selection if specified
@@ -435,6 +413,15 @@ async def main():
                     print(f"📁 JSON output saved to: {args.output_file}")
             else:
                 print(json_output)
+
+            # Pipe to notification engine
+            try:
+                import subprocess
+                subprocess.run([
+                    "python3", "scripts/notification_engine.py"
+                ], input=json_output, text=True, check=True)
+            except Exception as e:
+                print(f"⚠️  Failed to pipe to notification engine: {e}", file=sys.stderr)
         
         # Output human-readable if requested
         if args.format in ['human', 'both'] and not args.silent:
