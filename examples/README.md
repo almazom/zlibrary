@@ -8,9 +8,11 @@
 examples/
 ├── python/
 │   ├── search_and_download.py    # Поиск и загрузка книг
-│   └── epub_diagnostics.py       # Диагностика качества EPUB
-├── run_full_example.py           # Полный workflow
-├── test_epub_diagnostics.py      # Тест диагностики
+│   ├── epub_diagnostics.py       # Диагностика качества EPUB
+│   ├── run_full_example.py       # Полный workflow
+│   └── test_epub_diagnostics.py  # Тест диагностики
+├── curl/
+│   └── ...                       # Примеры с curl
 └── README.md                     # Эта документация
 ```
 
@@ -21,7 +23,7 @@ examples/
 Не требует настройки Z-Library аккаунта:
 
 ```bash
-cd examples
+cd examples/python
 python3 test_epub_diagnostics.py
 ```
 
@@ -47,7 +49,7 @@ python3 search_and_download.py
 ### 3. 🚀 Полный workflow
 
 ```bash
-cd examples  
+cd examples/python
 python3 run_full_example.py
 ```
 
@@ -205,6 +207,7 @@ python3 -c "import aiohttp, aiofiles; print('OK')"
 
 ```bash
 # Тест диагностики
+cd examples/python
 python3 test_epub_diagnostics.py
 
 # Ручная диагностика файла
@@ -278,7 +281,7 @@ search_and_analyze() {
 
 **Быстрый старт:**
 1. 🔧 Настройте `.env` с credentials
-2. 🧪 Запустите `python3 test_epub_diagnostics.py`
-3. 🚀 Попробуйте `python3 run_full_example.py`
+2. 🧪 Запустите `cd examples/python && python3 test_epub_diagnostics.py`
+3. 🚀 Попробуйте `cd examples/python && python3 run_full_example.py`
 
 **Happy reading!** 📚✨
